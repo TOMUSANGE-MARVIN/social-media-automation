@@ -1,6 +1,8 @@
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap");
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 @theme {
     --color-bg: #fafafa;
     --color-text: #111111;
@@ -43,3 +45,128 @@ button {
 ::-webkit-scrollbar-thumb:hover {
     background: #bbb;
 }
+
+@keyframes marquee {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+/* ── Scroll animations ───────────────────────────────────────────────── */
+.sa-fade-up {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sa-fade-up.sa-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.sa-fade-in {
+    opacity: 0;
+    transition: opacity 0.8s ease;
+}
+.sa-fade-in.sa-visible {
+    opacity: 1;
+}
+
+.sa-slide-left {
+    opacity: 0;
+    transform: translateX(-50px);
+    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sa-slide-left.sa-visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.sa-slide-right {
+    opacity: 0;
+    transform: translateX(50px);
+    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sa-slide-right.sa-visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.sa-scale {
+    opacity: 0;
+    transform: scale(0.92);
+    transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.sa-scale.sa-visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Stagger delays */
+.sa-delay-100 { transition-delay: 100ms; }
+.sa-delay-200 { transition-delay: 200ms; }
+.sa-delay-300 { transition-delay: 300ms; }
+.sa-delay-400 { transition-delay: 400ms; }
+.sa-delay-500 { transition-delay: 500ms; }
+.sa-delay-600 { transition-delay: 600ms; }
+
+
+/* ── Dark mode overrides ─────────────────────────────────────────────── */
+.dark .dash-area { background-color: #0d0d0d; }
+
+/* Cards & containers */
+.dark .bg-white {
+    background-color: #161616 !important;
+    border-color: rgba(255,255,255,0.08) !important;
+    box-shadow: none !important;
+}
+.dark .ai-promo-card {
+    background-color: #1a1a1a !important;
+    border-color: rgba(255,255,255,0.1) !important;
+}
+
+/* Muted backgrounds */
+.dark .bg-gray-50  { background-color: rgba(255,255,255,0.03) !important; }
+.dark .bg-gray-100 { background-color: rgba(255,255,255,0.06) !important; }
+.dark .bg-gray-200 { background-color: rgba(255,255,255,0.1)  !important; }
+.dark .bg-amber-50 { background-color: rgba(251,191,36,0.08)  !important; }
+
+/* Hover states */
+.dark .hover\:bg-gray-50:hover  { background-color: rgba(255,255,255,0.04) !important; }
+.dark .hover\:bg-gray-100:hover { background-color: rgba(255,255,255,0.08) !important; }
+
+/* Text */
+.dark .text-gray-900 { color: #f9fafb !important; }
+.dark .text-gray-800 { color: rgba(255,255,255,0.85) !important; }
+.dark .text-gray-700 { color: rgba(255,255,255,0.70) !important; }
+.dark .text-gray-600 { color: rgba(255,255,255,0.55) !important; }
+.dark .text-gray-500 { color: rgba(255,255,255,0.42) !important; }
+.dark .text-gray-400 { color: rgba(255,255,255,0.32) !important; }
+.dark .text-gray-300 { color: rgba(255,255,255,0.22) !important; }
+
+/* Borders */
+.dark .border-gray-200 { border-color: rgba(255,255,255,0.1)  !important; }
+.dark .border-gray-100 { border-color: rgba(255,255,255,0.06) !important; }
+
+/* Status pills */
+.dark .bg-blue-50    { background-color: rgba(59,130,246,0.15)  !important; }
+.dark .text-blue-600 { color: #93c5fd !important; }
+.dark .bg-green-50   { background-color: rgba(16,185,129,0.12)  !important; }
+.dark .text-green-600{ color: #6ee7b7 !important; }
+.dark .bg-red-50     { background-color: rgba(239,68,68,0.12)   !important; }
+.dark .text-red-500  { color: #fca5a5 !important; }
+.dark .bg-amber-50   { background-color: rgba(251,191,36,0.10)  !important; }
+.dark .text-amber-700{ color: #fbbf24 !important; }
+
+/* Inputs */
+.dark input, .dark textarea, .dark select {
+    background-color: rgba(255,255,255,0.05) !important;
+    border-color: rgba(255,255,255,0.1) !important;
+    color: #f9fafb !important;
+}
+.dark input::placeholder, .dark textarea::placeholder {
+    color: rgba(255,255,255,0.22) !important;
+}
+

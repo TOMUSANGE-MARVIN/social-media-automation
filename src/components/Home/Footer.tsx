@@ -1,55 +1,76 @@
 import { Link } from "react-router-dom";
+import { SiTiktok, SiInstagram, SiX } from "@icons-pack/react-simple-icons";
+import LinkedinIcon from "../icons/LinkedinIcon";
 
-const footerLinks = {
-    Product: ["Features", "How it works", "Pricing", "Changelog"],
-    Company: ["About", "Blog", "Careers", "Press"],
-    Legal: ["Privacy", "Terms", "Security", "Cookies"],
+const links = {
+    Product: [
+        { label: "Features", to: "/features" },
+        { label: "Pricing",  to: "/pricing" },
+        { label: "How it works", to: "/#how-it-works" },
+        { label: "Changelog", to: "/changelog" },
+    ],
+    Company: [
+        { label: "About",   to: "/about" },
+        { label: "Blog",    to: "/blog" },
+        { label: "Contact", to: "/contact" },
+        { label: "Careers", to: "/about#careers" },
+    ],
+    Legal: [
+        { label: "Privacy",  to: "/privacy" },
+        { label: "Terms",    to: "/terms" },
+        { label: "Security", to: "/privacy#security" },
+        { label: "Cookies",  to: "/privacy#cookies" },
+    ],
 };
 
 export default function Footer() {
     return (
-        <footer style={{ background: "#fafafa", borderTop: "1px solid rgba(0,0,0,0.07)" }}>
-            <div className="max-w-6xl mx-auto px-5 sm:px-8 py-16">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
-                    {/* Brand */}
+        <footer className="bg-black border-t border-white/5">
+            <div className="max-w-7xl mx-auto px-5 sm:px-8 py-16">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
                     <div className="lg:col-span-2">
-                        <Link to="/" onClick={() => scrollTo(0, 0)} className="inline-flex items-center gap-2 mb-5">
-                            <img src="/logo.svg" alt="logo" className="size-6" />
-                            <span className="font-medium font-serif text-xl text-gray-800">Scheduler</span>
+                        <Link to="/" className="inline-flex items-center gap-2 mb-5">
+                            <div className="size-6 rounded-md bg-[#AAFF00] flex items-center justify-center">
+                                <div className="size-2 rounded-sm bg-black" />
+                            </div>
+                            <span className="text-white font-bold text-base">Postify</span>
                         </Link>
-                        <p className="text-sm text-gray-500 leading-relaxed max-w-xs">The AI-powered social media scheduler that helps creators and teams grow faster with less effort.</p>
+                        <p className="text-sm text-white/30 leading-relaxed max-w-xs mb-6">
+                            AI-powered social media automation for creators and teams who want to grow without burning out.
+                        </p>
+                        <div className="flex items-center gap-3">
+                            {[SiX, SiInstagram, SiTiktok].map((Icon, i) => (
+                                <a key={i} href="#"
+                                    className="size-8 rounded-lg border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:border-white/30 transition-colors">
+                                    <Icon size={14} color="currentColor" />
+                                </a>
+                            ))}
+                            <a href="#" className="size-8 rounded-lg border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:border-white/30 transition-colors">
+                                <LinkedinIcon size={14} color="currentColor" />
+                            </a>
+                        </div>
                     </div>
-
-                    {/* Links */}
-                    {Object.entries(footerLinks).map(([category, links]) => (
-                        <div key={category}>
-                            <div className="text-xs font-semibold uppercase tracking-widest mb-5 text-gray-600">{category}</div>
-                            <ul className="space-y-1">
-                                {links.map((link) => (
-                                    <li key={link}>
-                                        <a href="#" className="text-sm text-gray-500 hover:text-gray-900">
-                                            {link}
-                                        </a>
+                    {Object.entries(links).map(([cat, items]) => (
+                        <div key={cat}>
+                            <div className="text-[10px] font-black uppercase tracking-widest mb-5 text-white/25">{cat}</div>
+                            <ul className="space-y-2.5">
+                                {items.map(({ label, to }) => (
+                                    <li key={label}>
+                                        <Link to={to} className="text-sm text-white/40 hover:text-white transition-colors">
+                                            {label}
+                                        </Link>
                                     </li>
                                 ))}
                             </ul>
                         </div>
                     ))}
                 </div>
-
-                {/* Bottom bar */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8" style={{ borderTop: "1px solid rgba(0,0,0,0.07)" }}>
-                    <p className="text-xs text-gray-400">© {new Date().getFullYear()} Scheduler. All rights reserved.</p>
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-white/5">
+                    <p className="text-xs text-white/20">© {new Date().getFullYear()} Postify. All rights reserved.</p>
                     <div className="flex items-center gap-6">
-                        <a href="#" className="text-xs text-gray-400 hover:text-gray-700">
-                            Privacy Policy
-                        </a>
-                        <a href="#" className="text-xs text-gray-400 hover:text-gray-700">
-                            Terms of Service
-                        </a>
-                        <Link to="/login" className="text-xs text-gray-400 hover:text-gray-700">
-                            Sign In
-                        </Link>
+                        <Link to="/privacy" className="text-xs text-white/20 hover:text-white/50 transition-colors">Privacy</Link>
+                        <Link to="/terms"   className="text-xs text-white/20 hover:text-white/50 transition-colors">Terms</Link>
+                        <Link to="/login"   className="text-xs text-[#AAFF00] hover:text-[#c8ff33] transition-colors font-semibold">Sign in →</Link>
                     </div>
                 </div>
             </div>

@@ -1,79 +1,63 @@
-import { CheckIcon, CircleCheckBigIcon } from "lucide-react";
+import { Check, ArrowUpRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useScrollAnimation } from "../../hooks/useScrollAnimation";
 
-const pricingPlans = [
-    {
-        name: "Starter",
-        price: "Free",
-        period: "",
-        description: "Perfect for creators just getting started with social media automation.",
-        features: ["2 social accounts", "10 scheduled posts/month", "AI content (5 credits/mo)", "Basic dashboard"],
-        cta: "Get Started Free",
-        highlight: false,
-    },
-    {
-        name: "Pro",
-        price: "$29",
-        period: "/month",
-        description: "Everything you need to grow and automate your social presence.",
-        features: ["Unlimited accounts", "Unlimited scheduling", "AI content (200 credits/mo)", "Priority support"],
-        cta: "Start 14-day Free Trial",
-        highlight: true,
-    },
-    {
-        name: "Agency",
-        price: "$79",
-        period: "/month",
-        description: "For teams and agencies managing multiple brands at scale.",
-        features: ["Everything in Pro", "5 team members", "Unlimited AI credits", "Custom AI personas", "Dedicated support"],
-        cta: "Contact Sales",
-        highlight: false,
-    },
+const plans = [
+    { name: "Starter", price: "Free", period: "",    features: ["2 social accounts","10 posts/month","AI content (5 credits)","Basic analytics"],                                          cta: "Get started",   highlight: false },
+    { name: "Pro",     price: "$29",  period: "/mo", features: ["Unlimited accounts","Unlimited scheduling","AI content (200 credits)","Advanced analytics","Priority support"],           cta: "Start free trial", highlight: true  },
+    { name: "Agency",  price: "$79",  period: "/mo", features: ["Everything in Pro","5 team members","Unlimited AI credits","Custom personas","Dedicated support"],                       cta: "Contact sales", highlight: false },
 ];
 
 export default function Pricing() {
+    const header = useScrollAnimation();
+    const cards  = useScrollAnimation(0.1);
+
     return (
-        <section id="pricing" className="py-24 bg-white">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6">
-                <div className="text-center mb-16">
-                    <div className="mb-6 inline-flex items-center gap-1.5 bg-red-500/10 border border-red-500/15 text-red-500 text-[11px] font-medium tracking-[0.06em] uppercase px-3.5 py-1.5 rounded-full">
-                        <CircleCheckBigIcon className="size-3" />
-                        Simple pricing
-                    </div>
-                    <h2 className="font-serif font-medium text-4xl sm:text-5xl leading-tight text-gray-900">
-                        Plans for every stage
+        <section id="pricing" className="bg-[#F4F4EE] py-20">
+            <div className="max-w-7xl mx-auto px-5 sm:px-8">
+                <div ref={header.ref as React.RefObject<HTMLDivElement>}
+                    className={`flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-14 sa-fade-up ${header.visible ? "sa-visible" : ""}`}>
+                    <h2 className="text-3xl sm:text-4xl font-black text-black leading-tight">
+                        Simple, transparent
                         <br />
-                        <span className="text-red-400 italic">of growth</span>
+                        <span className="relative inline-block">
+                            pricing
+                            <span className="absolute inset-x-0 -bottom-1 h-2 bg-[#AAFF00] -z-10" />
+                        </span>
                     </h2>
-                    <p className="mt-5 text-gray-500 max-w-md mx-auto">Start free, upgrade when you're ready. Cancel anytime — no hidden fees.</p>
+                    <p className="text-sm text-black/50 max-w-xs">Start free. Upgrade when you're ready. Cancel anytime.</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
-                    {pricingPlans.map((plan) => (
-                        <div key={plan.name} className={`rounded-2xl border p-7 flex flex-col gap-6 relative ${plan.highlight ? "bg-red-500 text-white border-red-400 shadow-2xl shadow-red-100" : "bg-white text-slate-900 border-slate-200"}`}>
-                            {plan.highlight && <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs font-bold px-3.5 py-1.5 rounded-full">Most Popular</div>}
+                <div ref={cards.ref as React.RefObject<HTMLDivElement>}
+                    className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {plans.map((plan, i) => (
+                        <div key={plan.name}
+                            className={`rounded-2xl p-7 flex flex-col gap-6 relative sa-fade-up sa-delay-${(i + 1) * 100} ${cards.visible ? "sa-visible" : ""} ${
+                                plan.highlight ? "bg-black text-white" : "bg-white text-black border border-black/[0.08]"
+                            }`}>
+                            {plan.highlight && <div className="absolute top-5 right-5 size-4 bg-[#AAFF00]" />}
                             <div>
-                                <div className={`text-sm font-semibold mb-1 ${plan.highlight ? "text-red-100" : "text-red-500"}`}>{plan.name}</div>
+                                <div className={`text-xs font-black uppercase tracking-widest mb-3 ${plan.highlight ? "text-[#AAFF00]" : "text-black/40"}`}>{plan.name}</div>
                                 <div className="flex items-end gap-1">
-                                    <span className="text-4xl font-bold">{plan.price}</span>
-                                    <span className={`text-sm mb-1.5 ${plan.highlight ? "text-red-200" : "text-slate-400"}`}>{plan.period}</span>
+                                    <span className="text-4xl font-black">{plan.price}</span>
+                                    <span className={`text-sm mb-1.5 ${plan.highlight ? "text-white/40" : "text-black/30"}`}>{plan.period}</span>
                                 </div>
-                                <p className={`text-sm mt-2 leading-relaxed ${plan.highlight ? "text-red-100" : "text-slate-500"}`}>{plan.description}</p>
                             </div>
-
-                            <ul className="space-y-2.5">
+                            <ul className="space-y-2.5 flex-1">
                                 {plan.features.map((f) => (
                                     <li key={f} className="flex items-center gap-2.5 text-sm">
-                                        <div className={`size-4 rounded-full flex items-center justify-center shrink-0 ${plan.highlight ? "bg-red-400" : "bg-red-50"}`}>
-                                            <CheckIcon className={`w-2.5 h-2.5 ${plan.highlight ? "text-white" : "text-red-500"}`} />
+                                        <div className={`size-4 rounded-full flex items-center justify-center shrink-0 ${plan.highlight ? "bg-[#AAFF00]" : "bg-black"}`}>
+                                            <Check className={`size-2.5 ${plan.highlight ? "text-black" : "text-[#AAFF00]"}`} />
                                         </div>
-                                        <span className={plan.highlight ? "text-red-50" : "text-slate-600"}>{f}</span>
+                                        <span className={plan.highlight ? "text-white/70" : "text-black/60"}>{f}</span>
                                     </li>
                                 ))}
                             </ul>
-
-                            <Link to="/#" className={`mt-auto text-center font-semibold text-sm px-6 py-3 rounded-full ${plan.highlight ? "bg-white text-red-500 hover:bg-red-50" : "bg-red-500 text-white hover:bg-red-600"}`}>
-                                {plan.cta}
+                            <Link to="/login"
+                                className={`inline-flex items-center justify-center gap-2 font-bold text-sm px-6 py-3 rounded-full transition-colors ${
+                                    plan.highlight ? "bg-[#AAFF00] text-black hover:bg-[#c8ff33]" : "bg-black text-white hover:bg-neutral-800"
+                                }`}>
+                                {plan.cta} <ArrowUpRight className="size-4" />
                             </Link>
                         </div>
                     ))}

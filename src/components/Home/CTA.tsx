@@ -1,42 +1,41 @@
 import { Link } from "react-router-dom";
-import { ArrowRightIcon } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
+import { useScrollAnimation } from "../../hooks/useScrollAnimation";
 
 export default function CTA() {
+    const section = useScrollAnimation(0.2);
+
     return (
-        <section className="py-20" style={{ background: "#ffffff" }}>
-            <div className="max-w-6xl mx-auto px-5 sm:px-8">
-                <div
-                    className="relative rounded-3xl overflow-hidden p-14 sm:p-20 text-center"
-                    style={{
-                        background: "linear-gradient(145deg, #fff5f5 0%, #fef2f2 100%)",
-                        border: "1.5px solid rgba(239,68,68,0.12)",
-                    }}
-                >
-                    {/* Glow blobs */}
-                    <div className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(239,68,68,0.1) 0%, transparent 70%)" }} />
-                    <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(239,68,68,0.06) 0%, transparent 70%)" }} />
+        <section className="bg-black py-24 relative overflow-hidden">
+            <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[500px] rounded-full bg-[#AAFF00]/5 blur-3xl" />
+                <div className="absolute bottom-0 left-0 size-40 bg-[#AAFF00]/10 blur-2xl" />
+                <div className="absolute top-0 right-0 size-40 bg-[#AAFF00]/10 blur-2xl" />
+            </div>
 
-                    <div className="relative">
-                        <div className="mb-6 inline-flex items-center gap-1.5 bg-red-500/10 border border-red-500/15 text-red-500 text-[11px] font-medium tracking-[0.06em] uppercase px-3.5 py-1.5 rounded-full">Ready to grow?</div>
-                        <h2 className="font-serif text-4xl sm:text-5xl md:text-6xl leading-tight font-medium text-gray-900">
-                            Automate your social
-                            <br />
-                            <span className="text-red-400 italic">media today</span>
-                        </h2>
-                        <p className="mt-6 text-gray-500 max-w-lg mx-auto  text-lg">Join thousands of creators and marketers who trust Scheduler to grow their audience on autopilot.</p>
-
-                        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
-                            <Link to="/login" className="bg-red-500 text-white rounded-full font-semibold hover:bg-red-600 hover:shadow-[0_8px_24px_rgba(239,68,68,0.35)] inline-flex items-center gap-2 text-[15px] px-10 py-4 w-full sm:w-auto justify-center">
-                                Get Started Free <ArrowRightIcon className="size-4" />
-                            </Link>
-                            <a href="#pricing" className="bg-transparent text-[#333] border-[1.5px] border-black/10 rounded-full font-medium hover:bg-black/5 hover:border-black/20 inline-flex items-center gap-2 text-[15px] px-10 py-4 w-full sm:w-auto justify-center">
-                                View Pricing
-                            </a>
-                        </div>
-
-                        <p className="mt-6 text-xs text-gray-400">No credit card required · Cancel anytime</p>
-                    </div>
+            <div ref={section.ref as React.RefObject<HTMLDivElement>}
+                className={`relative z-10 max-w-3xl mx-auto px-5 sm:px-8 text-center sa-fade-up ${section.visible ? "sa-visible" : ""}`}>
+                <div className="inline-block bg-[#AAFF00] text-black text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full mb-6">
+                    Start for free today
                 </div>
+                <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-white leading-tight mb-6">
+                    Stop posting manually.<br />
+                    <span className="text-[#AAFF00]">Start growing faster.</span>
+                </h2>
+                <p className="text-white/50 text-sm sm:text-base leading-relaxed mb-10 max-w-xl mx-auto">
+                    Join 12,000+ creators and brands using Postify to automate their content across TikTok, Instagram, Facebook, and LinkedIn.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Link to="/login"
+                        className="inline-flex items-center justify-center gap-2 bg-[#AAFF00] text-black font-black text-sm px-8 py-4 rounded-full hover:bg-[#c8ff33] transition-all hover:scale-105">
+                        Create free account <ArrowUpRight className="size-5" />
+                    </Link>
+                    <Link to="#how-it-works"
+                        className="inline-flex items-center justify-center gap-2 border border-white/20 text-white/70 font-bold text-sm px-8 py-4 rounded-full hover:border-white/40 hover:text-white transition-all">
+                        See how it works
+                    </Link>
+                </div>
+                <p className="text-white/20 text-xs mt-6">No credit card required · Cancel anytime</p>
             </div>
         </section>
     );

@@ -1,0 +1,12 @@
+node_modules
+dist
+server/.env
+*.env
+.git
+.gitignore
+*.log
+*.md
+README.md
+server/data.db
+server/data.db-shm
+server/data.db-wal

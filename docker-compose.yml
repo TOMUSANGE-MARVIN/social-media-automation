@@ -1,0 +1,18 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - JWT_SECRET=change_this_to_a_random_secret
+      - ZERNIO_API_KEY=your_zernio_api_key
+      - OPENAI_API_KEY=your_openai_api_key
+      - CLIENT_URL=https://yourdomain.com
+      - DATA_DIR=/app/data
+    volumes:
+      - postify_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  postify_data:
