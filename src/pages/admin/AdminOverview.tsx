@@ -64,7 +64,6 @@ export default function AdminOverview() {
   const card  = dark ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200";
   const head  = dark ? "text-white" : "text-slate-900";
   const muted = dark ? "text-slate-400" : "text-slate-500";
-  const grid  = dark ? "stroke-[#1e293b]" : "stroke-[#e2e8f0]";
   const tooltipStyle = dark
     ? { background: "#1e293b", border: "1px solid #334155", borderRadius: 8, color: "#fff", fontSize: 12 }
     : { background: "#fff",    border: "1px solid #e2e8f0", borderRadius: 8, color: "#0f172a", fontSize: 12 };
