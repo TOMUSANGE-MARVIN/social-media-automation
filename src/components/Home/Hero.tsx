@@ -23,6 +23,72 @@ export default function Hero() {
             {/* Faint grid */}
             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:60px_60px]" />
 
+            {/* Animated node network */}
+            <svg
+                className="absolute inset-0 w-full h-full pointer-events-none"
+                viewBox="0 0 1200 700"
+                preserveAspectRatio="xMidYMid slice"
+                aria-hidden
+            >
+                {/* Connection lines */}
+                <g stroke="#AAFF00" strokeWidth="0.8" opacity="0.1">
+                    <line x1="80"  y1="190" x2="360" y2="120" />
+                    <line x1="360" y1="120" x2="630" y2="210" />
+                    <line x1="630" y1="210" x2="890" y2="140" />
+                    <line x1="890" y1="140" x2="1110" y2="270" />
+                    <line x1="80"  y1="190" x2="230" y2="440" />
+                    <line x1="630" y1="210" x2="730" y2="460" />
+                    <line x1="890" y1="140" x2="840" y2="390" />
+                    <line x1="230" y1="440" x2="530" y2="520" />
+                    <line x1="530" y1="520" x2="730" y2="460" />
+                    <line x1="730" y1="460" x2="1020" y2="530" />
+                    <line x1="360" y1="120" x2="230" y2="440" />
+                    <line x1="1110" y1="270" x2="1020" y2="530" />
+                </g>
+
+                {/* Floating nodes with SMIL animation */}
+                <circle cx="80" cy="190" r="3.5" fill="#AAFF00" opacity="0.55">
+                    <animateTransform attributeName="transform" type="translate" values="0,0; 4,-9; -2,5; 0,0" dur="7s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1" />
+                </circle>
+                <circle cx="360" cy="120" r="2.5" fill="#AAFF00" opacity="0.45">
+                    <animateTransform attributeName="transform" type="translate" values="0,0; -5,7; 3,-4; 0,0" dur="9s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1" />
+                </circle>
+                <circle cx="630" cy="210" r="5" fill="#AAFF00" opacity="0.65">
+                    <animateTransform attributeName="transform" type="translate" values="0,0; 7,-11; -4,6; 0,0" dur="6s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1" />
+                </circle>
+                <circle cx="890" cy="140" r="3" fill="#AAFF00" opacity="0.5">
+                    <animateTransform attributeName="transform" type="translate" values="0,0; -4,8; 5,-3; 0,0" dur="8.5s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1" />
+                </circle>
+                <circle cx="1110" cy="270" r="3" fill="#AAFF00" opacity="0.4">
+                    <animateTransform attributeName="transform" type="translate" values="0,0; 5,-6; -5,9; 0,0" dur="10s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1" />
+                </circle>
+                <circle cx="230" cy="440" r="2.5" fill="#AAFF00" opacity="0.4">
+                    <animateTransform attributeName="transform" type="translate" values="0,0; 3,9; -4,-5; 0,0" dur="7.5s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1" />
+                </circle>
+                <circle cx="530" cy="520" r="4" fill="#AAFF00" opacity="0.45">
+                    <animateTransform attributeName="transform" type="translate" values="0,0; -6,-8; 4,7; 0,0" dur="8s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1" />
+                </circle>
+                <circle cx="730" cy="460" r="3" fill="#AAFF00" opacity="0.5">
+                    <animateTransform attributeName="transform" type="translate" values="0,0; 6,7; -4,-9; 0,0" dur="6.5s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1" />
+                </circle>
+                <circle cx="1020" cy="530" r="2.5" fill="#AAFF00" opacity="0.35">
+                    <animateTransform attributeName="transform" type="translate" values="0,0; -3,10; 6,-5; 0,0" dur="9.5s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1" />
+                </circle>
+                <circle cx="840" cy="390" r="2" fill="#AAFF00" opacity="0.3">
+                    <animateTransform attributeName="transform" type="translate" values="0,0; 8,-4; -5,8; 0,0" dur="11s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1" />
+                </circle>
+
+                {/* Pulse rings on two key nodes */}
+                <circle cx="630" cy="210" r="7" fill="none" stroke="#AAFF00" strokeWidth="1">
+                    <animate attributeName="r" values="7;30" dur="3s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.35;0" dur="3s" repeatCount="indefinite" />
+                </circle>
+                <circle cx="360" cy="120" r="5" fill="none" stroke="#AAFF00" strokeWidth="1">
+                    <animate attributeName="r" values="5;22" dur="3s" begin="1.5s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.25;0" dur="3s" begin="1.5s" repeatCount="indefinite" />
+                </circle>
+            </svg>
+
             {/* Content */}
             <div className="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 pt-20 pb-12 flex-1 flex flex-col justify-center">
                 <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-10 items-end">

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowUpRight, Wand2, CalendarDays, Share2, BarChart3 } from "lucide-react";
 import { useScrollAnimation } from "../../hooks/useScrollAnimation";
+import PipelineFlow from "./PipelineFlow";
 
 const services = [
     { icon: Wand2,        title: "AI Content Generation",    items: ["Caption writing","Image creation","Hashtag suggestions"], highlight: false },
@@ -16,7 +17,10 @@ export default function HowItWorks() {
     return (
         <section id="how-it-works" className="bg-[#F4F4EE] py-20">
             <div className="max-w-7xl mx-auto px-5 sm:px-8">
-                <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.6fr] gap-12 items-start">
+                {/* Scroll-triggered pipeline SVG */}
+                <PipelineFlow />
+
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.6fr] gap-12 items-start mt-16">
                     {/* Left */}
                     <div ref={left.ref as React.RefObject<HTMLDivElement>}
                         className={`sa-slide-left ${left.visible ? "sa-visible" : ""}`}>

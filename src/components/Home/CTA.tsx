@@ -4,6 +4,7 @@ import { useScrollAnimation } from "../../hooks/useScrollAnimation";
 
 export default function CTA() {
     const section = useScrollAnimation(0.2);
+    const rings   = useScrollAnimation(0.3);
 
     return (
         <section className="bg-black py-24 relative overflow-hidden">
@@ -11,6 +12,22 @@ export default function CTA() {
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[500px] rounded-full bg-[#AAFF00]/5 blur-3xl" />
                 <div className="absolute bottom-0 left-0 size-40 bg-[#AAFF00]/10 blur-2xl" />
                 <div className="absolute top-0 right-0 size-40 bg-[#AAFF00]/10 blur-2xl" />
+
+                {/* Scroll-triggered concentric rings */}
+                <svg
+                    ref={rings.ref as unknown as React.RefObject<SVGSVGElement>}
+                    className={`cta-rings absolute inset-0 w-full h-full ${rings.visible ? "sa-visible" : ""}`}
+                    viewBox="0 0 800 400"
+                    preserveAspectRatio="xMidYMid slice"
+                    aria-hidden
+                >
+                    <circle className="ring" cx="400" cy="200" r="90"
+                        fill="none" stroke="#AAFF00" strokeWidth="1.5" strokeOpacity="0.6" />
+                    <circle className="ring" cx="400" cy="200" r="150"
+                        fill="none" stroke="#AAFF00" strokeWidth="1" strokeOpacity="0.35" />
+                    <circle className="ring" cx="400" cy="200" r="220"
+                        fill="none" stroke="#AAFF00" strokeWidth="0.8" strokeOpacity="0.2" />
+                </svg>
             </div>
 
             <div ref={section.ref as React.RefObject<HTMLDivElement>}
