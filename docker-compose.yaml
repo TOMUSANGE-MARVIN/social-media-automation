@@ -1,40 +1,26 @@
 services:
 
-  db:
-    image: mariadb:11
-    restart: unless-stopped
-    environment:
-      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootsecret}
-      MARIADB_DATABASE:      ${DB_NAME:-postify}
-      MARIADB_USER:          ${DB_USER:-postify}
-      MARIADB_PASSWORD:      ${DB_PASSWORD:-postifysecret}
-    volumes:
-      - db_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-    ports:
-      - "3306:3306"   # remove this line in production (not needed outside Docker network)
-
   app:
     build: .
     restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
     ports:
       - "3002:3001"
     env_file:
       - ./server/.env
     environment:
-      DB_HOST:     db
-      DB_PORT:     3306
+      DB_HOST:     ${DB_HOST:-postify-mariadb}
+      DB_PORT:     ${DB_PORT:-3306}
       DB_NAME:     ${DB_NAME:-postify}
       DB_USER:     ${DB_USER:-postify}
       DB_PASSWORD: ${DB_PASSWORD:-postifysecret}
 
-volumes:
-  db_data:
+# MariaDB runs as a separate standalone container (postify-mariadb)
+# managed outside this compose file so Coolify doesn't recreate it on every deploy.
+# To start it locally:
+#   docker run -d --name postify-mariadb \
+#     -e MARIADB_ROOT_PASSWORD=rootsecret \
+#     -e MARIADB_DATABASE=postify \
+#     -e MARIADB_USER=postify \
+#     -e MARIADB_PASSWORD=postifysecret \
+#     -v postify-mariadb-data:/var/lib/mysql \
+#     mariadb:11
