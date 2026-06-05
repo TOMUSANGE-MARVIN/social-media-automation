@@ -19,7 +19,7 @@ const features = [
 const platforms = [
     { name: "Instagram",       Icon: SiInstagram, color: "#E1306C", bg: "bg-pink-50",     text: "text-pink-600" },
     { name: "Facebook",        Icon: SiFacebook,  color: "#1877F2", bg: "bg-blue-50",     text: "text-blue-600" },
-    { name: "TikTok",          Icon: SiTiktok,    color: "#000000", bg: "bg-black",       text: "text-white" },
+    { name: "TikTok",          Icon: SiTiktok,    color: "#ffffff", bg: "bg-black",       text: "text-white" },
     { name: "YouTube",         Icon: SiYoutube,   color: "#FF0000", bg: "bg-red-50",      text: "text-red-600" },
     { name: "LinkedIn",        Icon: null,        color: "#0A66C2", bg: "bg-blue-50",     text: "text-blue-700", custom: true },
     { name: "X (Twitter)",     Icon: SiX,         color: "#000000", bg: "bg-gray-100",    text: "text-black" },
