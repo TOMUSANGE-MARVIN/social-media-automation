@@ -1,19 +1,26 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { RefreshCw, CheckCircle2, XCircle, Plug2 } from "lucide-react";
-import { SiTiktok, SiInstagram, SiFacebook, SiYoutube, SiWhatsapp, SiX } from "@icons-pack/react-simple-icons";
+import { SiTiktok, SiInstagram, SiFacebook, SiYoutube, SiWhatsapp, SiX, SiPinterest, SiThreads, SiReddit, SiTelegram, SiDiscord, SiBluesky, SiGoogle } from "@icons-pack/react-simple-icons";
 import LinkedinIcon from "../components/icons/LinkedinIcon";
 import { useApp } from "../context/AppContext";
 import { zernioApi, type ZernioAccount } from "../services/api";
 
 const PLATFORMS = [
-    { id: "tiktok",    name: "TikTok",    Icon: SiTiktok,    bg: "bg-slate-900" },
-    { id: "instagram", name: "Instagram", Icon: SiInstagram, bg: "bg-gradient-to-br from-pink-500 to-purple-600" },
-    { id: "facebook",  name: "Facebook",  Icon: SiFacebook,  bg: "bg-blue-600" },
-    { id: "linkedin",  name: "LinkedIn",  Icon: LinkedinIcon, bg: "bg-blue-700" },
-    { id: "youtube",   name: "YouTube",   Icon: SiYoutube,   bg: "bg-red-600" },
-    { id: "whatsapp",  name: "WhatsApp",  Icon: SiWhatsapp,  bg: "bg-green-600" },
-    { id: "twitter",   name: "X (Twitter)", Icon: SiX,       bg: "bg-black" },
+    { id: "instagram",      name: "Instagram",       Icon: SiInstagram, bg: "bg-gradient-to-br from-pink-500 to-purple-600" },
+    { id: "facebook",       name: "Facebook",        Icon: SiFacebook,  bg: "bg-blue-600" },
+    { id: "tiktok",         name: "TikTok",          Icon: SiTiktok,    bg: "bg-slate-900" },
+    { id: "youtube",        name: "YouTube",         Icon: SiYoutube,   bg: "bg-red-600" },
+    { id: "linkedin",       name: "LinkedIn",        Icon: LinkedinIcon, bg: "bg-blue-700" },
+    { id: "twitter",        name: "X (Twitter)",     Icon: SiX,         bg: "bg-black" },
+    { id: "threads",        name: "Threads",         Icon: SiThreads,   bg: "bg-black" },
+    { id: "pinterest",      name: "Pinterest",       Icon: SiPinterest, bg: "bg-red-600" },
+    { id: "reddit",         name: "Reddit",          Icon: SiReddit,    bg: "bg-orange-600" },
+    { id: "telegram",       name: "Telegram",        Icon: SiTelegram,  bg: "bg-sky-500" },
+    { id: "discord",        name: "Discord",         Icon: SiDiscord,   bg: "bg-indigo-600" },
+    { id: "bluesky",        name: "Bluesky",         Icon: SiBluesky,   bg: "bg-sky-500" },
+    { id: "whatsapp",       name: "WhatsApp",        Icon: SiWhatsapp,  bg: "bg-green-600" },
+    { id: "googlebusiness", name: "Google Business", Icon: SiGoogle,    bg: "bg-blue-500" },
 ];
 
 type Toast = { type: "success" | "error"; message: string } | null;

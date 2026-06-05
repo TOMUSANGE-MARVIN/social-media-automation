@@ -28,7 +28,85 @@ export interface User {
   name: string;
   email: string;
   zernioProfileId: string | null;
+  isAdmin: boolean;
+  plan: string;
+  paidAccountSlots: number;
 }
+
+// ─── Admin API ────────────────────────────────────────────────────────────────
+
+export interface AdminStats {
+  totalUsers: number;
+  newUsers7d: number;
+  newUsers30d: number;
+  paidUsers: number;
+  freeUsers: number;
+  totalAccounts: number;
+  platformCounts: Record<string, number>;
+  growth: { date: string; count: number }[];
+  planDistribution: Record<string, number>;
+}
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  zernio_profile_id: string | null;
+  created_at: string;
+  plan: string;
+  paid_account_slots: number;
+  is_admin: number;
+  accountCount: number;
+  platforms: string[];
+}
+
+export interface AdminUserDetail {
+  user: AdminUser;
+  accounts: ZernioAccount[];
+  postStats: { total: number; published: number; scheduled: number; failed: number; draft: number };
+  recentPosts: ZernioPost[];
+}
+
+function adminToken() {
+  return localStorage.getItem('admin_token') ?? '';
+}
+
+async function adminRequest<T>(method: string, path: string, body?: unknown): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${adminToken()}`,
+    },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  let data: any;
+  try { data = await res.json(); } catch { data = {}; }
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  return data as T;
+}
+
+export interface AdminAuthUser {
+  id: string;
+  name: string;
+  email: string;
+}
+
+export const adminApi = {
+  auth: {
+    login: (email: string, password: string) =>
+      request<{ token: string; admin: AdminAuthUser }>('POST', '/admin/auth/login', { email, password }),
+    me: () => adminRequest<{ admin: AdminAuthUser }>('GET', '/admin/auth/me'),
+  },
+  stats: () => adminRequest<AdminStats>('GET', '/admin/stats'),
+  users: (params?: { page?: number; limit?: number; search?: string }) => {
+    const q = params ? '?' + new URLSearchParams(Object.fromEntries(Object.entries(params).map(([k, v]) => [k, String(v)]))) : '';
+    return adminRequest<{ users: AdminUser[]; total: number; page: number; pages: number }>('GET', `/admin/users${q}`);
+  },
+  userDetail: (id: string) => adminRequest<AdminUserDetail>('GET', `/admin/users/${id}`),
+  updateUser: (id: string, data: Partial<Pick<AdminUser, 'plan' | 'paid_account_slots' | 'is_admin'>>) =>
+    adminRequest<{ ok: boolean }>('PATCH', `/admin/users/${id}`, data),
+};
 
 export const authApi = {
   register: (name: string, email: string, password: string) =>
@@ -36,6 +114,8 @@ export const authApi = {
   login: (email: string, password: string) =>
     request<{ token: string; user: User }>('POST', '/auth/login', { email, password }),
   me: () => request<{ user: User }>('GET', '/auth/me'),
+  googleLogin: (credential: string) =>
+    request<{ token: string; user: User }>('POST', '/auth/google', { credential }),
 };
 
 // ─── Zernio types ─────────────────────────────────────────────────────────────

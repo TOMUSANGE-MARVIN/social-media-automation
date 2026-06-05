@@ -2,7 +2,7 @@ import { NavLink, Link } from 'react-router-dom';
 import { useState } from 'react';
 import {
   LayoutDashboard, PenSquare, CalendarDays, Link2, Settings,
-  LogOut, Menu, X, BarChart2, Sun, Moon,
+  LogOut, Menu, X, BarChart2, Sun, Moon, Shield,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -19,6 +19,8 @@ const NAV = [
 function NavItems({ onNav }: { onNav?: () => void }) {
   const { user, signOut } = useAuth();
   const { theme, toggle } = useTheme();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const isAdmin = (user as any)?.isAdmin;
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
@@ -50,6 +52,24 @@ function NavItems({ onNav }: { onNav?: () => void }) {
           </NavLink>
         ))}
       </nav>
+
+      {/* Admin link */}
+      {isAdmin && (
+        <div className="px-3 pb-2">
+          <p className="px-3 py-2 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Admin</p>
+          <NavLink to="/admin" onClick={onNav}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                isActive
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+              }`
+            }>
+            <Shield className="size-[17px] shrink-0" />
+            Admin Panel
+          </NavLink>
+        </div>
+      )}
 
       {/* Bottom */}
       <div className="px-3 py-4 border-t border-gray-100">

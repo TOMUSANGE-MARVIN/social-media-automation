@@ -2,3 +2,5 @@ node_modules/
 dist/
 server/.env
 *.env
+server/data.db*
+.env.local

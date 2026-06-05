@@ -2,15 +2,18 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { MailIcon, LockIcon, ArrowRightIcon, User2Icon } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { authApi } from "../services/api";
+
+const GOOGLE_CONFIGURED = !!import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 export default function Login() {
     const [isSignUp, setIsSignUp] = useState(false);
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
+    const [name, setName]         = useState("");
+    const [email, setEmail]       = useState("");
     const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
-    const { signIn, signUp } = useAuth();
+    const [loading, setLoading]   = useState(false);
+    const [error, setError]       = useState("");
+    const { signIn, signUp, setUserFromToken } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -31,11 +34,25 @@ export default function Login() {
         }
     };
 
+    const handleGoogleSuccess = async (credential: string) => {
+        setError("");
+        setLoading(true);
+        try {
+            const data = await authApi.googleLogin(credential);
+            localStorage.setItem("auth_token", data.token);
+            setUserFromToken(data.user);
+            navigate("/dashboard");
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Google login failed");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-black flex items-center justify-center p-4"
             style={{ backgroundImage: "radial-gradient(ellipse 80% 60% at 50% -10%, #AAFF0015 0%, transparent 70%)" }}>
 
-            {/* Subtle grid texture */}
             <div className="absolute inset-0 pointer-events-none"
                 style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px)", backgroundSize: "60px 60px" }} />
 
@@ -59,6 +76,22 @@ export default function Login() {
                         <div className="mb-5 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-xl">
                             {error}
                         </div>
+                    )}
+
+                    {/* Google button */}
+                    {GOOGLE_CONFIGURED && (
+                        <>
+                            <GoogleLoginButton
+                                onCredential={handleGoogleSuccess}
+                                onError={(msg) => setError(msg)}
+                                disabled={loading}
+                            />
+                            <div className="flex items-center gap-3 my-5">
+                                <div className="flex-1 h-px bg-white/10" />
+                                <span className="text-white/30 text-xs">or continue with email</span>
+                                <div className="flex-1 h-px bg-white/10" />
+                            </div>
+                        </>
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-4 text-sm">
@@ -119,6 +152,36 @@ export default function Login() {
                     © {new Date().getFullYear()} Postify · All rights reserved
                 </p>
             </div>
+        </div>
+    );
+}
+
+// Separate component so it can use the GoogleLogin component from @react-oauth/google
+import { GoogleLogin } from "@react-oauth/google";
+
+function GoogleLoginButton({
+    onCredential,
+    onError,
+    disabled,
+}: {
+    onCredential: (credential: string) => void;
+    onError: (msg: string) => void;
+    disabled: boolean;
+}) {
+    return (
+        <div className={`w-full ${disabled ? "pointer-events-none opacity-50" : ""}`}>
+            <GoogleLogin
+                onSuccess={(res) => {
+                    if (res.credential) onCredential(res.credential);
+                    else onError("No credential returned from Google");
+                }}
+                onError={() => onError("Google sign-in was cancelled or failed")}
+                theme="filled_black"
+                shape="rectangular"
+                size="large"
+                width="100%"
+                text="continue_with"
+            />
         </div>
     );
 }

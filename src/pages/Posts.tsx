@@ -21,10 +21,20 @@ const STATUS_PILL: Record<string, string> = {
 };
 
 const PLATFORM_DOT: Record<string, string> = {
-    tiktok:    "bg-slate-900",
-    instagram: "bg-pink-500",
-    facebook:  "bg-blue-600",
-    linkedin:  "bg-blue-700",
+    instagram:      "bg-pink-500",
+    facebook:       "bg-blue-600",
+    tiktok:         "bg-slate-900",
+    youtube:        "bg-red-600",
+    linkedin:       "bg-blue-700",
+    twitter:        "bg-black",
+    threads:        "bg-black",
+    pinterest:      "bg-red-600",
+    reddit:         "bg-orange-600",
+    telegram:       "bg-sky-500",
+    discord:        "bg-indigo-600",
+    bluesky:        "bg-sky-500",
+    whatsapp:       "bg-green-600",
+    googlebusiness: "bg-blue-500",
 };
 
 export default function Posts() {

@@ -1,18 +1,40 @@
 services:
+
+  db:
+    image: mariadb:11
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootsecret}
+      MARIADB_DATABASE:      ${DB_NAME:-postify}
+      MARIADB_USER:          ${DB_USER:-postify}
+      MARIADB_PASSWORD:      ${DB_PASSWORD:-postifysecret}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    ports:
+      - "3306:3306"   # remove this line in production (not needed outside Docker network)
+
   app:
     build: .
-    ports:
-      - "3001:3001"
-    environment:
-      - PORT=3001
-      - JWT_SECRET=change_this_to_a_random_secret
-      - ZERNIO_API_KEY=your_zernio_api_key
-      - OPENAI_API_KEY=your_openai_api_key
-      - CLIENT_URL=https://yourdomain.com
-      - DATA_DIR=/app/data
-    volumes:
-      - postify_data:/app/data
     restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3002:3001"
+    env_file:
+      - ./server/.env
+    environment:
+      DB_HOST:     db
+      DB_PORT:     3306
+      DB_NAME:     ${DB_NAME:-postify}
+      DB_USER:     ${DB_USER:-postify}
+      DB_PASSWORD: ${DB_PASSWORD:-postifysecret}
 
 volumes:
-  postify_data:
+  db_data:

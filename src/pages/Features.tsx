@@ -1,13 +1,13 @@
 import { ArrowUpRight, Wand2, CalendarDays, Share2, BarChart3, Image, Hash, Bell, RefreshCw, Layers, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
-import { SiTiktok, SiInstagram, SiFacebook, SiYoutube, SiWhatsapp, SiX } from "@icons-pack/react-simple-icons";
+import { SiTiktok, SiInstagram, SiFacebook, SiYoutube, SiWhatsapp, SiX, SiPinterest, SiThreads, SiReddit, SiTelegram, SiDiscord, SiBluesky, SiGoogle } from "@icons-pack/react-simple-icons";
 import LinkedinIcon from "../components/icons/LinkedinIcon";
 import { useScrollAnimation } from "../hooks/useScrollAnimation";
 
 const features = [
     { icon: Wand2,        title: "AI Content Generation",    desc: "GPT-4o writes platform-native captions, hooks, and CTAs that match your brand voice. Generate a week of content in minutes.",        points: ["Platform-specific tone", "Custom brand voice", "Bulk generation", "Caption + hashtag combo"] },
     { icon: Image,        title: "AI Image Creation",        desc: "Generate scroll-stopping visuals with DALL-E. Describe what you want — get a post-ready image in seconds.",                          points: ["Vivid & natural modes", "1:1, 4:5, 16:9 ratios", "No design skills needed", "Consistent brand aesthetics"] },
-    { icon: Share2,       title: "Multi-Platform Publishing", desc: "Write once, publish everywhere. One composer sends your content to TikTok, Instagram, Facebook, and LinkedIn simultaneously.",      points: ["7 platforms supported", "Per-platform customization", "Unified inbox", "Single composer"] },
+    { icon: Share2,       title: "Multi-Platform Publishing", desc: "Write once, publish everywhere. One composer sends your content to TikTok, Instagram, Facebook, LinkedIn, and more simultaneously.", points: ["14 platforms supported", "Per-platform customization", "Unified inbox", "Single composer"] },
     { icon: CalendarDays, title: "Visual Content Calendar",  desc: "Drag-and-drop scheduling with a clear visual calendar. See your entire content strategy at a glance.",                              points: ["Monthly & weekly views", "Bulk scheduling", "Best-time recommendations", "Timezone support"] },
     { icon: BarChart3,    title: "Advanced Analytics",       desc: "Track what matters. Impressions, engagement, reach and follower growth — all in one dashboard.",                                    points: ["Cross-platform metrics", "Engagement rate", "Best time insights", "Exportable reports"] },
     { icon: Hash,         title: "Hashtag Intelligence",     desc: "Stop guessing hashtags. Our AI finds the optimal mix of trending and niche tags for maximum reach.",                                points: ["Trend-aware suggestions", "Niche + broad mix", "Platform limits", "Performance tracking"] },
@@ -17,13 +17,20 @@ const features = [
 ];
 
 const platforms = [
-    { name: "TikTok",    Icon: SiTiktok,    color: "#000000", bg: "bg-black",       text: "text-white" },
-    { name: "Instagram", Icon: SiInstagram, color: "#E1306C", bg: "bg-pink-50",     text: "text-pink-600" },
-    { name: "Facebook",  Icon: SiFacebook,  color: "#1877F2", bg: "bg-blue-50",     text: "text-blue-600" },
-    { name: "LinkedIn",  Icon: null,        color: "#0A66C2", bg: "bg-blue-50",     text: "text-blue-700", custom: true },
-    { name: "YouTube",   Icon: SiYoutube,   color: "#FF0000", bg: "bg-red-50",      text: "text-red-600" },
-    { name: "X",         Icon: SiX,         color: "#000000", bg: "bg-gray-100",    text: "text-black" },
-    { name: "WhatsApp",  Icon: SiWhatsapp,  color: "#25D366", bg: "bg-green-50",    text: "text-green-600" },
+    { name: "Instagram",       Icon: SiInstagram, color: "#E1306C", bg: "bg-pink-50",     text: "text-pink-600" },
+    { name: "Facebook",        Icon: SiFacebook,  color: "#1877F2", bg: "bg-blue-50",     text: "text-blue-600" },
+    { name: "TikTok",          Icon: SiTiktok,    color: "#000000", bg: "bg-black",       text: "text-white" },
+    { name: "YouTube",         Icon: SiYoutube,   color: "#FF0000", bg: "bg-red-50",      text: "text-red-600" },
+    { name: "LinkedIn",        Icon: null,        color: "#0A66C2", bg: "bg-blue-50",     text: "text-blue-700", custom: true },
+    { name: "X (Twitter)",     Icon: SiX,         color: "#000000", bg: "bg-gray-100",    text: "text-black" },
+    { name: "Threads",         Icon: SiThreads,   color: "#000000", bg: "bg-gray-100",    text: "text-black" },
+    { name: "Pinterest",       Icon: SiPinterest, color: "#E60023", bg: "bg-red-50",      text: "text-red-600" },
+    { name: "Reddit",          Icon: SiReddit,    color: "#FF4500", bg: "bg-orange-50",   text: "text-orange-600" },
+    { name: "Telegram",        Icon: SiTelegram,  color: "#2AABEE", bg: "bg-sky-50",      text: "text-sky-600" },
+    { name: "Discord",         Icon: SiDiscord,   color: "#5865F2", bg: "bg-indigo-50",   text: "text-indigo-600" },
+    { name: "Bluesky",         Icon: SiBluesky,   color: "#0285FF", bg: "bg-sky-50",      text: "text-sky-600" },
+    { name: "WhatsApp",        Icon: SiWhatsapp,  color: "#25D366", bg: "bg-green-50",    text: "text-green-600" },
+    { name: "Google Business", Icon: SiGoogle,    color: "#4285F4", bg: "bg-blue-50",     text: "text-blue-500" },
 ];
 
 export default function FeaturesPage() {

@@ -2,15 +2,17 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
+import { OAuth2Client } from 'google-auth-library';
 import db from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const router = Router();
 const ZERNIO = 'https://zernio.com/api/v1';
 
 async function createZernioProfile(name) {
   try {
-    console.log('[Zernio] Creating profile, API key set:', !!process.env.ZERNIO_API_KEY);
     const res = await fetch(`${ZERNIO}/profiles`, {
       method: 'POST',
       headers: {
@@ -19,9 +21,7 @@ async function createZernioProfile(name) {
       },
       body: JSON.stringify({ name: `${name}'s Profile ${Date.now().toString(36)}` }),
     });
-    const text = await res.text();
-    console.log('[Zernio] Profile response status:', res.status, 'body:', text.slice(0, 200));
-    const data = JSON.parse(text);
+    const data = await res.json();
     return data.profile?._id || data._id || null;
   } catch (err) {
     console.error('[Zernio] Failed to create profile:', err.message);
@@ -37,21 +37,22 @@ router.post('/register', async (req, res) => {
     if (password.length < 6)
       return res.status(400).json({ error: 'Password must be at least 6 characters' });
 
-    const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+    const existing = await db('users').where({ email }).first('id');
     if (existing) return res.status(409).json({ error: 'Email already registered' });
 
-    const id = randomUUID();
-    const passwordHash = await bcrypt.hash(password, 10);
+    const id             = randomUUID();
+    const passwordHash   = await bcrypt.hash(password, 10);
     const zernioProfileId = await createZernioProfile(name);
 
-    db.prepare(
-      'INSERT INTO users (id, name, email, password_hash, zernio_profile_id) VALUES (?, ?, ?, ?, ?)'
-    ).run(id, name, email, passwordHash, zernioProfileId);
+    await db('users').insert({ id, name, email, password_hash: passwordHash, zernio_profile_id: zernioProfileId });
 
     const token = jwt.sign({ userId: id }, process.env.JWT_SECRET, { expiresIn: '30d' });
-    res.status(201).json({ token, user: { id, name, email, zernioProfileId } });
+    res.status(201).json({
+      token,
+      user: { id, name, email, zernioProfileId, isAdmin: false, plan: 'free', paidAccountSlots: 0 },
+    });
   } catch (err) {
-    console.error(err);
+    console.error('[auth/register]', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
@@ -59,7 +60,7 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    const user = await db('users').where({ email }).first();
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
     const valid = await bcrypt.compare(password, user.password_hash);
@@ -68,20 +69,96 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
     res.json({
       token,
-      user: { id: user.id, name: user.name, email: user.email, zernioProfileId: user.zernio_profile_id },
+      user: {
+        id:               user.id,
+        name:             user.name,
+        email:            user.email,
+        zernioProfileId:  user.zernio_profile_id,
+        isAdmin:          !!user.is_admin,
+        plan:             user.plan || 'free',
+        paidAccountSlots: user.paid_account_slots || 0,
+      },
     });
   } catch (err) {
-    console.error(err);
+    console.error('[auth/login]', err);
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-router.get('/me', requireAuth, (req, res) => {
-  const user = db
-    .prepare('SELECT id, name, email, zernio_profile_id FROM users WHERE id = ?')
-    .get(req.userId);
-  if (!user) return res.status(404).json({ error: 'User not found' });
-  res.json({ user: { id: user.id, name: user.name, email: user.email, zernioProfileId: user.zernio_profile_id } });
+// POST /api/auth/google  — verify Google ID token, create or sign in user
+router.post('/google', async (req, res) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) return res.status(400).json({ error: 'Missing Google credential' });
+    if (!process.env.GOOGLE_CLIENT_ID)
+      return res.status(503).json({ error: 'Google login not configured' });
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken:  credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const { sub: googleId, email, name, picture } = ticket.getPayload();
+
+    // Find existing user by google_id or email
+    let user = await db('users').where({ google_id: googleId }).first();
+    if (!user) user = await db('users').where({ email }).first();
+
+    if (!user) {
+      // New user — create account
+      const id = randomUUID();
+      const zernioProfileId = await createZernioProfile(name);
+      await db('users').insert({
+        id, name, email,
+        google_id:        googleId,
+        avatar_url:       picture || null,
+        zernio_profile_id: zernioProfileId,
+      });
+      user = await db('users').where({ id }).first();
+    } else if (!user.google_id) {
+      // Existing email account — link Google
+      await db('users').where({ id: user.id }).update({ google_id: googleId, avatar_url: picture || null });
+    }
+
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+    res.json({
+      token,
+      user: {
+        id:               user.id,
+        name:             user.name,
+        email:            user.email,
+        zernioProfileId:  user.zernio_profile_id,
+        isAdmin:          !!user.is_admin,
+        plan:             user.plan || 'free',
+        paidAccountSlots: user.paid_account_slots || 0,
+      },
+    });
+  } catch (err) {
+    console.error('[auth/google]', err);
+    res.status(401).json({ error: 'Google authentication failed' });
+  }
+});
+
+router.get('/me', requireAuth, async (req, res) => {
+  try {
+    const user = await db('users')
+      .where({ id: req.userId })
+      .first('id', 'name', 'email', 'zernio_profile_id', 'is_admin', 'plan', 'paid_account_slots');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({
+      user: {
+        id:               user.id,
+        name:             user.name,
+        email:            user.email,
+        zernioProfileId:  user.zernio_profile_id,
+        isAdmin:          !!user.is_admin,
+        plan:             user.plan || 'free',
+        paidAccountSlots: user.paid_account_slots || 0,
+      },
+    });
+  } catch (err) {
+    console.error('[auth/me]', err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 export default router;

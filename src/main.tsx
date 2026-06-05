@@ -6,6 +6,9 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { AppProvider } from "./context/AppContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { GoogleOAuthProvider } from "@react-oauth/google";
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: string | null }> {
     state = { error: null };
@@ -26,15 +29,17 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: string |
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
         <ErrorBoundary>
-            <BrowserRouter>
-                <ThemeProvider>
-                    <AuthProvider>
-                        <AppProvider>
-                            <App />
-                        </AppProvider>
-                    </AuthProvider>
-                </ThemeProvider>
-            </BrowserRouter>
+            <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+                <BrowserRouter>
+                    <ThemeProvider>
+                        <AuthProvider>
+                            <AppProvider>
+                                <App />
+                            </AppProvider>
+                        </AuthProvider>
+                    </ThemeProvider>
+                </BrowserRouter>
+            </GoogleOAuthProvider>
         </ErrorBoundary>
     </StrictMode>
 );

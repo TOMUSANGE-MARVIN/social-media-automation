@@ -2,7 +2,7 @@
 /* eslint-disable react-refresh/only-export-components */
 
 import React from "react";
-import { SiX, SiFacebook, SiInstagram } from "@icons-pack/react-simple-icons";
+import { SiX, SiFacebook, SiInstagram, SiTiktok, SiYoutube, SiWhatsapp, SiPinterest, SiThreads, SiReddit, SiTelegram, SiDiscord, SiBluesky, SiGoogle } from "@icons-pack/react-simple-icons";
 import img_1 from "./img-1.jpg";
 import img_2 from "./img-2.jpg";
 import img_3 from "./img-3.jpg";
@@ -22,10 +22,20 @@ export interface Platform {
 }
 
 export const PLATFORMS: Platform[] = [
-    { id: "twitter", name: "Twitter / X", icon: SiX, description: "Post tweets, threads, and media" },
-    { id: "linkedin", name: "LinkedIn", icon: LinkedInIcon, description: "Publish to your profile & company pages" },
-    { id: "facebook", name: "Facebook", icon: SiFacebook, description: "Manage your pages and profile" },
-    { id: "instagram", name: "Instagram", icon: SiInstagram, description: "Share photos, reels and stories" },
+    { id: "instagram",      name: "Instagram",       icon: SiInstagram, description: "Share photos, reels and stories" },
+    { id: "facebook",       name: "Facebook",        icon: SiFacebook,  description: "Manage your pages and profile" },
+    { id: "tiktok",         name: "TikTok",          icon: SiTiktok,    description: "Post videos and live streams" },
+    { id: "youtube",        name: "YouTube",         icon: SiYoutube,   description: "Publish videos and shorts" },
+    { id: "linkedin",       name: "LinkedIn",        icon: LinkedInIcon, description: "Publish to your profile & company pages" },
+    { id: "twitter",        name: "X (Twitter)",     icon: SiX,         description: "Post tweets, threads, and media" },
+    { id: "threads",        name: "Threads",         icon: SiThreads,   description: "Share text updates and conversations" },
+    { id: "pinterest",      name: "Pinterest",       icon: SiPinterest, description: "Pin images and drive discovery" },
+    { id: "reddit",         name: "Reddit",          icon: SiReddit,    description: "Post to communities and subreddits" },
+    { id: "telegram",       name: "Telegram",        icon: SiTelegram,  description: "Broadcast to channels and groups" },
+    { id: "discord",        name: "Discord",         icon: SiDiscord,   description: "Post to servers and channels" },
+    { id: "bluesky",        name: "Bluesky",         icon: SiBluesky,   description: "Share posts on the open social web" },
+    { id: "whatsapp",       name: "WhatsApp",        icon: SiWhatsapp,  description: "Send to channels and broadcast lists" },
+    { id: "googlebusiness", name: "Google Business", icon: SiGoogle,    description: "Post updates to your Google Business profile" },
 ];
 
 export const dummyPostsData: any = [

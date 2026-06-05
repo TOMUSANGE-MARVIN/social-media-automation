@@ -4,16 +4,26 @@ import {
     Send, Save, Clock, Hash, ImagePlus, X, Loader2, CheckCircle2,
     Sparkles, ChevronDown, Wand2, Image as ImageIcon,
 } from "lucide-react";
-import { SiTiktok, SiInstagram, SiFacebook } from "@icons-pack/react-simple-icons";
+import { SiTiktok, SiInstagram, SiFacebook, SiYoutube, SiWhatsapp, SiX, SiPinterest, SiThreads, SiReddit, SiTelegram, SiDiscord, SiBluesky, SiGoogle } from "@icons-pack/react-simple-icons";
 import LinkedinIcon from "../components/icons/LinkedinIcon";
 import { useApp } from "../context/AppContext";
 import { zernioApi, aiApi, type CreatePostBody } from "../services/api";
 
 const PLATFORM_META: Record<string, { name: string; Icon: React.FC<{ size?: number; color?: string }>; bg: string }> = {
-    tiktok:    { name: "TikTok",    Icon: SiTiktok,      bg: "bg-slate-900" },
-    instagram: { name: "Instagram", Icon: SiInstagram,   bg: "bg-gradient-to-br from-pink-500 to-purple-600" },
-    facebook:  { name: "Facebook",  Icon: SiFacebook,    bg: "bg-blue-600" },
-    linkedin:  { name: "LinkedIn",  Icon: LinkedinIcon,  bg: "bg-blue-700" },
+    instagram:      { name: "Instagram",       Icon: SiInstagram, bg: "bg-gradient-to-br from-pink-500 to-purple-600" },
+    facebook:       { name: "Facebook",        Icon: SiFacebook,  bg: "bg-blue-600" },
+    tiktok:         { name: "TikTok",          Icon: SiTiktok,    bg: "bg-slate-900" },
+    youtube:        { name: "YouTube",         Icon: SiYoutube,   bg: "bg-red-600" },
+    linkedin:       { name: "LinkedIn",        Icon: LinkedinIcon, bg: "bg-blue-700" },
+    twitter:        { name: "X (Twitter)",     Icon: SiX,         bg: "bg-black" },
+    threads:        { name: "Threads",         Icon: SiThreads,   bg: "bg-black" },
+    pinterest:      { name: "Pinterest",       Icon: SiPinterest, bg: "bg-red-600" },
+    reddit:         { name: "Reddit",          Icon: SiReddit,    bg: "bg-orange-600" },
+    telegram:       { name: "Telegram",        Icon: SiTelegram,  bg: "bg-sky-500" },
+    discord:        { name: "Discord",         Icon: SiDiscord,   bg: "bg-indigo-600" },
+    bluesky:        { name: "Bluesky",         Icon: SiBluesky,   bg: "bg-sky-500" },
+    whatsapp:       { name: "WhatsApp",        Icon: SiWhatsapp,  bg: "bg-green-600" },
+    googlebusiness: { name: "Google Business", Icon: SiGoogle,    bg: "bg-blue-500" },
 };
 
 const TONES = [

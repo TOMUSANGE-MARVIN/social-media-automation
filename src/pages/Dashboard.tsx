@@ -10,25 +10,48 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useApp } from "../context/AppContext";
 import { zernioApi, type ZernioPost } from "../services/api";
-import { SiTiktok, SiInstagram, SiFacebook } from "@icons-pack/react-simple-icons";
+import { SiTiktok, SiInstagram, SiFacebook, SiYoutube, SiWhatsapp, SiX, SiPinterest, SiThreads, SiReddit, SiTelegram, SiDiscord, SiBluesky, SiGoogle } from "@icons-pack/react-simple-icons";
 import LinkedinIcon from "../components/icons/LinkedinIcon";
 
 const PLATFORM_COLORS: Record<string, string> = {
-    tiktok:    "#0f172a",
-    instagram: "#ec4899",
-    facebook:  "#2563eb",
-    linkedin:  "#1d4ed8",
+    instagram:      "#ec4899",
+    facebook:       "#2563eb",
+    tiktok:         "#0f172a",
+    youtube:        "#ef4444",
+    linkedin:       "#1d4ed8",
+    twitter:        "#000000",
+    threads:        "#000000",
+    pinterest:      "#e60023",
+    reddit:         "#ea580c",
+    telegram:       "#0ea5e9",
+    discord:        "#4f46e5",
+    bluesky:        "#0285ff",
+    whatsapp:       "#16a34a",
+    googlebusiness: "#3b82f6",
 };
 
 const PLATFORM_BG: Record<string, string> = {
-    tiktok:    "bg-gray-900",
-    instagram: "bg-gradient-to-br from-pink-500 to-purple-600",
-    facebook:  "bg-blue-600",
-    linkedin:  "bg-blue-700",
+    instagram:      "bg-gradient-to-br from-pink-500 to-purple-600",
+    facebook:       "bg-blue-600",
+    tiktok:         "bg-gray-900",
+    youtube:        "bg-red-600",
+    linkedin:       "bg-blue-700",
+    twitter:        "bg-black",
+    threads:        "bg-black",
+    pinterest:      "bg-red-600",
+    reddit:         "bg-orange-600",
+    telegram:       "bg-sky-500",
+    discord:        "bg-indigo-600",
+    bluesky:        "bg-sky-500",
+    whatsapp:       "bg-green-600",
+    googlebusiness: "bg-blue-500",
 };
 
 const PLATFORM_ICONS: Record<string, React.FC<{ size?: number; color?: string }>> = {
-    tiktok: SiTiktok, instagram: SiInstagram, facebook: SiFacebook, linkedin: LinkedinIcon,
+    instagram: SiInstagram, facebook: SiFacebook, tiktok: SiTiktok, youtube: SiYoutube,
+    linkedin: LinkedinIcon, twitter: SiX, threads: SiThreads, pinterest: SiPinterest,
+    reddit: SiReddit, telegram: SiTelegram, discord: SiDiscord, bluesky: SiBluesky,
+    whatsapp: SiWhatsapp, googlebusiness: SiGoogle,
 };
 
 const STATUS_CONFIG: Record<string, { label: string; bg: string; text: string; dot: string }> = {

@@ -1,6 +1,7 @@
-import knex from 'knex';
+// Used by the knex CLI: npx knex --knexfile server/knexfile.js migrate:latest
+import 'dotenv/config';
 
-const db = knex({
+export default {
   client: 'mysql2',
   connection: {
     host:     process.env.DB_HOST     || '127.0.0.1',
@@ -8,13 +9,9 @@ const db = knex({
     user:     process.env.DB_USER     || 'postify',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_NAME     || 'postify',
-    // Return BIGINT (COUNT results) as JS numbers, not strings
-    typeCast(field, next) {
-      if (field.type === 'LONGLONG') return Number(field.string());
-      return next();
-    },
   },
-  pool: { min: 2, max: 10 },
-});
-
-export default db;
+  migrations: {
+    directory: './server/migrations',
+    extension: 'js',
+  },
+};
