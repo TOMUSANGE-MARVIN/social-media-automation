@@ -114,8 +114,8 @@ export const authApi = {
   login: (email: string, password: string) =>
     request<{ token: string; user: User }>('POST', '/auth/login', { email, password }),
   me: () => request<{ user: User }>('GET', '/auth/me'),
-  googleLogin: (credential: string) =>
-    request<{ token: string; user: User }>('POST', '/auth/google', { credential }),
+  googleLogin: (access_token: string) =>
+    request<{ token: string; user: User }>('POST', '/auth/google', { access_token }),
 };
 
 // ─── Zernio types ─────────────────────────────────────────────────────────────

@@ -2,11 +2,8 @@ import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
-import { OAuth2Client } from 'google-auth-library';
 import db from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
-
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const router = Router();
 const ZERNIO = 'https://zernio.com/api/v1';
@@ -85,19 +82,17 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// POST /api/auth/google  — verify Google ID token, create or sign in user
+// POST /api/auth/google  — verify Google access token via userinfo endpoint
 router.post('/google', async (req, res) => {
   try {
-    const { credential } = req.body;
-    if (!credential) return res.status(400).json({ error: 'Missing Google credential' });
-    if (!process.env.GOOGLE_CLIENT_ID)
-      return res.status(503).json({ error: 'Google login not configured' });
+    const { access_token } = req.body;
+    if (!access_token) return res.status(400).json({ error: 'Missing access_token' });
 
-    const ticket = await googleClient.verifyIdToken({
-      idToken:  credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
+    const infoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${access_token}` },
     });
-    const { sub: googleId, email, name, picture } = ticket.getPayload();
+    if (!infoRes.ok) return res.status(401).json({ error: 'Invalid Google token' });
+    const { sub: googleId, email, name, picture } = await infoRes.json();
 
     // Find existing user by google_id or email
     let user = await db('users').where({ google_id: googleId }).first();
