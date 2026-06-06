@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import type { ZernioPost } from "../services/api";
 import {
     Send, Save, Clock, Hash, ImagePlus, X, Loader2, CheckCircle2,
     Sparkles, ChevronDown, Wand2, Image as ImageIcon, HardDrive,
@@ -46,6 +47,10 @@ type AITab = "content" | "image";
 export default function Compose() {
     const { accounts } = useApp();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const location = useLocation();
+    const editPost = (location.state as { post?: ZernioPost } | null)?.post;
+    const isEditing = !!editPost && searchParams.get("edit") === editPost._id;
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // ── Compose state ──────────────────────────────────────────────────────────
@@ -66,6 +71,26 @@ export default function Compose() {
 
     useEffect(() => {
         storageApi.get().then(setStorage).catch(() => {});
+    }, []);
+
+    // Pre-populate form when editing
+    useEffect(() => {
+        if (!editPost) return;
+        setContent(editPost.content);
+        if (editPost.hashtags?.length) setHashtagInput(editPost.hashtags.join(" "));
+        if (editPost.scheduledFor) {
+            setMode("scheduled");
+            setScheduledFor(new Date(editPost.scheduledFor).toISOString().slice(0, 16));
+        } else if (editPost.status === "draft") {
+            setMode("draft");
+        }
+        setSelectedIds(new Set(editPost.platforms.map((p) => p.accountId)));
+        if (editPost.mediaItems?.[0]?.url) {
+            setMediaPreview(editPost.mediaItems[0].url);
+            setMediaPublicUrl(editPost.mediaItems[0].url);
+            setUploadState("done");
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // ── AI panel state ─────────────────────────────────────────────────────────
@@ -199,11 +224,12 @@ export default function Compose() {
 
         setLoading(true);
         try {
+            if (isEditing) await zernioApi.posts.delete(editPost!._id);
             await zernioApi.posts.create(body);
             setSuccess(mode === "now" ? "Post published!" : mode === "draft" ? "Draft saved!" : "Post scheduled!");
             setTimeout(() => navigate("/posts"), 1500);
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to create post.");
+            setError(err instanceof Error ? err.message : "Failed to save post.");
         } finally {
             setLoading(false);
         }
@@ -213,8 +239,8 @@ export default function Compose() {
         <div className="w-full max-w-3xl mx-auto">
             <div className="mb-8 flex items-start justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-semibold text-gray-900">Compose Post</h1>
-                    <p className="text-sm text-gray-500 mt-0.5">Create and schedule content across your platforms</p>
+                    <h1 className="text-2xl font-semibold text-gray-900">{isEditing ? "Edit Post" : "Compose Post"}</h1>
+                    <p className="text-sm text-gray-500 mt-0.5">{isEditing ? "Update your draft or scheduled post" : "Create and schedule content across your platforms"}</p>
                 </div>
                 <button
                     type="button"

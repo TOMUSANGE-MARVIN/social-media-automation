@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { Trash2, RefreshCw, RotateCcw, PenSquare, ChevronLeft, ChevronRight } from "lucide-react";
+import { Trash2, RefreshCw, RotateCcw, PenSquare, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
 import { zernioApi, type ZernioPost, type Pagination } from "../services/api";
 
 type StatusTab = "all" | "scheduled" | "published" | "draft" | "failed";
@@ -170,11 +170,15 @@ export default function Posts() {
                                 </button>
                             )}
                             {(post.status === "draft" || post.status === "scheduled") && (
-                                <button onClick={() => handleDelete(post._id)} disabled={actionId === post._id}
-                                    title="Delete" className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50">
-                                    <Trash2 className="size-4" />
-                                </button>
+                                <Link to={`/compose?edit=${post._id}`} state={{ post }}
+                                    title="Edit" className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
+                                    <Pencil className="size-4" />
+                                </Link>
                             )}
+                            <button onClick={() => handleDelete(post._id)} disabled={actionId === post._id}
+                                title="Delete" className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50">
+                                <Trash2 className="size-4" />
+                            </button>
                         </div>
                     </div>
                 ))}
