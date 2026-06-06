@@ -1,13 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
-import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale/en-US";
-import { RefreshCw, PenSquare } from "lucide-react";
+import { RefreshCw, PenSquare, Clock, X, Loader2 } from "lucide-react";
 import { zernioApi, type ZernioPost } from "../services/api";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 
 const localizer = dateFnsLocalizer({
   format,
@@ -17,16 +15,14 @@ const localizer = dateFnsLocalizer({
   locales: { "en-US": enUS },
 });
 
-const DnDCalendar = withDragAndDrop(Calendar);
-
 const PLATFORM_COLORS: Record<string, string> = {
   instagram:      "#ec4899",
   facebook:       "#2563eb",
-  tiktok:         "#0f172a",
+  tiktok:         "#334155",
   youtube:        "#ef4444",
   linkedin:       "#1d4ed8",
-  twitter:        "#000000",
-  threads:        "#000000",
+  twitter:        "#374151",
+  threads:        "#374151",
   pinterest:      "#e60023",
   reddit:         "#ea580c",
   telegram:       "#0ea5e9",
@@ -46,48 +42,91 @@ interface CalEvent {
 
 function postToEvent(post: ZernioPost): CalEvent {
   const start = post.scheduledFor ? new Date(post.scheduledFor) : new Date(post.createdAt);
-  const end = new Date(start.getTime() + 30 * 60 * 1000);
+  const end   = new Date(start.getTime() + 30 * 60 * 1000);
   const title = post.content.length > 50 ? post.content.slice(0, 50) + "…" : post.content;
   return { id: post._id, title, start, end, resource: post };
 }
 
-function eventStyleGetter(event: CalEvent) {
-  const color = PLATFORM_COLORS[event.resource.platforms?.[0]?.platform ?? ""] ?? "#6b7280";
-  return {
-    style: {
-      backgroundColor: color,
-      borderRadius: "6px",
-      border: "none",
-      color: "#fff",
-      fontSize: "11px",
-      padding: "2px 6px",
-    },
-  };
+function RescheduleModal({ post, onConfirm, onCancel }: {
+  post: ZernioPost;
+  onConfirm: (newDate: string) => Promise<void>;
+  onCancel: () => void;
+}) {
+  const current = post.scheduledFor
+    ? new Date(post.scheduledFor).toISOString().slice(0, 16)
+    : "";
+  const [newDate, setNewDate] = useState(current);
+  const [saving, setSaving] = useState(false);
+  const [error, setError]   = useState("");
+
+  async function handleSave() {
+    if (!newDate) { setError("Pick a date and time."); return; }
+    if (new Date(newDate) <= new Date()) { setError("Must be a future date."); return; }
+    setSaving(true);
+    try { await onConfirm(newDate); }
+    catch (e) { setError(e instanceof Error ? e.message : "Failed"); setSaving(false); }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <h2 className="font-semibold text-gray-900">Reschedule post</h2>
+            <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{post.content}</p>
+          </div>
+          <button onClick={onCancel} className="text-gray-400 hover:text-gray-700 p-1">
+            <X className="size-4" />
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Clock className="size-4 text-gray-400 shrink-0" />
+          <input
+            type="datetime-local"
+            value={newDate}
+            onChange={(e) => { setNewDate(e.target.value); setError(""); }}
+            min={new Date(Date.now() + 5 * 60 * 1000).toISOString().slice(0, 16)}
+            className="flex-1 text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-gray-400"
+          />
+        </div>
+
+        {error && <p className="text-xs text-red-500">{error}</p>}
+
+        <div className="flex gap-3">
+          <button onClick={onCancel} disabled={saving}
+            className="flex-1 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors disabled:opacity-50">
+            Cancel
+          </button>
+          <button onClick={handleSave} disabled={saving}
+            className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 rounded-xl transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+            {saving ? <><Loader2 className="size-4 animate-spin" /> Saving…</> : "Reschedule"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function CalendarPage() {
   const navigate = useNavigate();
-  const [events, setEvents] = useState<CalEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [rescheduling, setRescheduling] = useState(false);
+  const [events,       setEvents]       = useState<CalEvent[]>([]);
+  const [loading,      setLoading]      = useState(true);
+  const [error,        setError]        = useState("");
+  const [reschedulePost, setReschedulePost] = useState<ZernioPost | null>(null);
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      // Fetch scheduled posts (up to 200)
       const [scheduled, published] = await Promise.all([
         zernioApi.posts.list({ status: "scheduled", limit: 100 }),
         zernioApi.posts.list({ status: "published", limit: 100 }),
       ]);
-      const all = [
-        ...(scheduled.posts ?? []),
-        ...(published.posts ?? []),
-      ];
-      setEvents(all.map(postToEvent));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load posts.");
+      setEvents([...(scheduled.posts ?? []), ...(published.posts ?? [])].map(postToEvent));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load posts.");
     } finally {
       setLoading(false);
     }
@@ -95,46 +134,65 @@ export default function CalendarPage() {
 
   useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
-  async function onEventDrop({ event, start }: { event: object; start: Date | string; end: Date | string }) {
-    const calEvent = event as CalEvent;
-    const post = calEvent.resource;
-    if (post.status !== "scheduled") return; // can only reschedule scheduled posts
+  async function handleReschedule(newDateStr: string) {
+    const post = reschedulePost!;
+    const platforms = post.platforms.map((p) => ({ platform: p.platform, accountId: p.accountId }));
+    await zernioApi.posts.delete(post._id);
+    await zernioApi.posts.create({
+      content: post.content,
+      platforms,
+      scheduledFor: new Date(newDateStr).toISOString(),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      ...(post.hashtags?.length  && { hashtags:   post.hashtags }),
+      ...(post.mediaItems?.length && { mediaItems: post.mediaItems }),
+      ...(post.tags?.length       && { tags:        post.tags }),
+      ...(post.visibility         && { visibility:  post.visibility }),
+    });
+    setReschedulePost(null);
+    await fetchPosts();
+  }
 
-    const newStart = start instanceof Date ? start : new Date(start);
-    if (newStart <= new Date()) {
-      setError("Cannot reschedule to a past date.");
-      return;
+  function handleSelectEvent(event: object) {
+    const e = event as CalEvent;
+    if (e.resource.status === "scheduled") {
+      setReschedulePost(e.resource);
+    } else if (e.resource.status === "draft") {
+      navigate(`/compose?edit=${e.id}`, { state: { post: e.resource } });
     }
+  }
 
-    setRescheduling(true);
-    try {
-      // Recreate with new scheduled time
-      const platforms = post.platforms.map((p) => ({ platform: p.platform, accountId: p.accountId }));
-      await zernioApi.posts.delete(post._id);
-      await zernioApi.posts.create({
-        content: post.content,
-        platforms,
-        scheduledFor: newStart.toISOString(),
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        ...(post.hashtags?.length && { hashtags: post.hashtags }),
-        ...(post.mediaItems?.length && { mediaItems: post.mediaItems }),
-        ...(post.tags?.length && { tags: post.tags }),
-        ...(post.visibility && { visibility: post.visibility }),
-      });
-      await fetchPosts();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Reschedule failed.");
-    } finally {
-      setRescheduling(false);
-    }
+  function eventStyleGetter(event: object) {
+    const e = event as CalEvent;
+    const color = PLATFORM_COLORS[e.resource.platforms?.[0]?.platform ?? ""] ?? "#6b7280";
+    const isPublished = e.resource.status === "published";
+    return {
+      style: {
+        backgroundColor: color,
+        opacity: isPublished ? 0.6 : 1,
+        borderRadius: "5px",
+        border: "none",
+        color: "#fff",
+        fontSize: "11px",
+        padding: "2px 6px",
+        cursor: isPublished ? "default" : "pointer",
+      },
+    };
   }
 
   return (
     <div className="space-y-4">
+      {reschedulePost && (
+        <RescheduleModal
+          post={reschedulePost}
+          onConfirm={handleReschedule}
+          onCancel={() => setReschedulePost(null)}
+        />
+      )}
+
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Content Calendar</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Drag scheduled posts to reschedule them</p>
+          <p className="text-sm text-gray-500 mt-0.5">Click a scheduled post to reschedule it</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={fetchPosts} disabled={loading}
@@ -148,54 +206,41 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      {error && (
-        <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl">{error}</div>
-      )}
-      {rescheduling && (
-        <div className="p-3 bg-blue-50 border border-blue-100 text-blue-600 text-sm rounded-xl">Rescheduling post…</div>
-      )}
+      {error && <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl">{error}</div>}
 
-      {/* Legend */}
+      {/* Platform legend */}
       <div className="flex flex-wrap gap-3 text-xs">
-        {Object.entries(PLATFORM_COLORS).slice(0, 6).map(([p, c]) => (
+        {Object.entries(PLATFORM_COLORS).slice(0, 7).map(([p, c]) => (
           <div key={p} className="flex items-center gap-1.5">
             <span className="size-2.5 rounded-full inline-block" style={{ backgroundColor: c }} />
             <span className="capitalize text-gray-500">{p}</span>
           </div>
         ))}
-        <span className="text-gray-400">+ more</span>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4" style={{ height: 680 }}>
+      <div className="bg-white rounded-xl border border-gray-200 p-4" style={{ height: 660 }}>
         {loading ? (
           <div className="flex items-center justify-center h-full text-gray-400 text-sm">Loading…</div>
         ) : (
-          <DnDCalendar
+          <Calendar
             localizer={localizer}
             events={events}
             startAccessor={(e) => (e as CalEvent).start}
             endAccessor={(e) => (e as CalEvent).end}
-            eventPropGetter={eventStyleGetter as any}
-            onEventDrop={onEventDrop as any}
-            onSelectEvent={(event) => {
-              const e = event as CalEvent;
-              if (e.resource.status === "scheduled" || e.resource.status === "draft") {
-                navigate(`/compose?edit=${e.id}`, { state: { post: e.resource } });
-              }
-            }}
-            draggableAccessor={(event) => (event as CalEvent).resource.status === "scheduled"}
-            resizable={false}
-            views={["month", "week", "day"]}
+            titleAccessor={(e) => (e as CalEvent).title}
+            eventPropGetter={eventStyleGetter}
+            onSelectEvent={handleSelectEvent}
+            views={["month", "week", "day", "agenda"]}
             defaultView="month"
             popup
             style={{ height: "100%" }}
-            tooltipAccessor={(event) => (event as CalEvent).resource.content}
+            tooltipAccessor={(e) => (e as CalEvent).resource.content}
           />
         )}
       </div>
 
       <p className="text-xs text-gray-400 text-center">
-        Click a scheduled post to edit · Drag to reschedule · Published posts are read-only
+        Click a scheduled post to reschedule · Published posts are dimmed and read-only
       </p>
     </div>
   );
