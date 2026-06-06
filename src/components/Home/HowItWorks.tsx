@@ -1,13 +1,15 @@
 import { Link } from "react-router-dom";
-import { ArrowUpRight, Wand2, CalendarDays, Share2, BarChart3 } from "lucide-react";
+import { ArrowUpRight, Wand2, CalendarDays, Share2, BarChart3, Eye, Upload } from "lucide-react";
 import { useScrollAnimation } from "../../hooks/useScrollAnimation";
 import PipelineFlow from "./PipelineFlow";
 
 const services = [
-    { icon: Wand2,        title: "AI Content Generation",    items: ["Caption writing","Image creation","Hashtag suggestions"], highlight: false },
-    { icon: Share2,       title: "Multi-Platform Publishing", items: ["TikTok","Instagram","Facebook","LinkedIn"],               highlight: true  },
-    { icon: CalendarDays, title: "Smart Scheduling",          items: ["Visual calendar","Bulk queue","Timezone support"],       highlight: false },
-    { icon: BarChart3,    title: "Analytics & Insights",      items: ["Impressions","Engagement rate","Best time to post"],    highlight: false },
+    { icon: Wand2,        title: "AI Content Generation",  items: ["Caption writing","Image creation","Hashtag suggestions"],          highlight: false },
+    { icon: Share2,       title: "Multi-Platform Publishing", items: ["14 platforms","Single composer","Simultaneous publishing"],      highlight: true  },
+    { icon: CalendarDays, title: "Smart Scheduling",        items: ["Content calendar","Bulk CSV upload","Timezone support"],           highlight: false },
+    { icon: BarChart3,    title: "Analytics & Insights",    items: ["Impressions","Engagement rate","Best time to post"],               highlight: false },
+    { icon: Eye,          title: "Platform Preview",        items: ["Instagram mockup","X / LinkedIn cards","Character limit meter"],   highlight: false, badge: "New" },
+    { icon: Upload,       title: "Bulk Upload",             items: ["CSV scheduling","50 posts at once","Per-row validation"],          highlight: false, badge: "New" },
 ];
 
 export default function HowItWorks() {
@@ -30,7 +32,7 @@ export default function HowItWorks() {
                             <br />automation services
                         </h2>
                         <p className="text-sm text-black/50 leading-relaxed mb-6 max-w-xs">
-                            Everything you need to go from idea to published post across all your social platforms — powered by AI.
+                            Everything you need to go from idea to published post across all your social platforms — powered by AI, now with platform previews, bulk upload, and a content calendar.
                         </p>
                         <div className="rounded-2xl overflow-hidden mb-6 aspect-[4/3]">
                             <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&auto=format&fit=crop&q=80" alt="Team working" className="w-full h-full object-cover" />
@@ -40,7 +42,7 @@ export default function HowItWorks() {
                         </Link>
                     </div>
 
-                    {/* Right: 2×2 service cards */}
+                    {/* Right: 3×2 service cards */}
                     <div ref={right.ref as React.RefObject<HTMLDivElement>}
                         className={`grid grid-cols-1 sm:grid-cols-2 gap-4 relative sa-slide-right sa-delay-100 ${right.visible ? "sa-visible" : ""}`}>
                         <div className="absolute -top-3 -right-3 size-6 bg-[#AAFF00] hidden sm:block" />
@@ -48,12 +50,19 @@ export default function HowItWorks() {
 
                         {services.map((s, i) => (
                             <div key={s.title}
-                                className={`rounded-2xl p-6 flex flex-col gap-4 relative overflow-hidden sa-fade-up sa-delay-${(i + 1) * 100} ${right.visible ? "sa-visible" : ""} ${
+                                className={`rounded-2xl p-6 flex flex-col gap-4 relative overflow-hidden sa-fade-up sa-delay-${(i % 4 + 1) * 100} ${right.visible ? "sa-visible" : ""} ${
                                     s.highlight ? "bg-black text-white" : "bg-white text-black border border-black/[0.07]"
                                 }`}>
                                 {s.highlight && <div className="absolute top-4 right-4 size-16 rounded-full bg-[#AAFF00]/10 blur-xl" />}
-                                <div className="size-9 rounded-xl bg-[#AAFF00] flex items-center justify-center">
-                                    <s.icon className="size-4 text-black" />
+                                <div className="flex items-start justify-between">
+                                    <div className="size-9 rounded-xl bg-[#AAFF00] flex items-center justify-center">
+                                        <s.icon className="size-4 text-black" />
+                                    </div>
+                                    {"badge" in s && s.badge && (
+                                        <span className="text-[9px] font-black uppercase tracking-widest bg-[#AAFF00] text-black px-2 py-0.5 rounded-full self-start">
+                                            {s.badge}
+                                        </span>
+                                    )}
                                 </div>
                                 <div>
                                     <h3 className={`font-bold text-sm mb-2 ${s.highlight ? "text-white" : "text-black"}`}>{s.title}</h3>
