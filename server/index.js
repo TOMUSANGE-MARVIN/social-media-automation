@@ -8,6 +8,7 @@ import authRouter from './routes/auth.js';
 import zernioRouter from './routes/zernio.js';
 import aiRouter from './routes/ai.js';
 import adminRouter from './routes/admin.js';
+import storageRouter from './routes/storage.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -35,10 +36,11 @@ const apiCors = cors({
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/auth',   apiCors, authRouter);
+app.use('/api/auth',    apiCors, authRouter);
 app.use('/api/zernio', apiCors, zernioRouter);
 app.use('/api/ai',     apiCors, aiRouter);
 app.use('/api/admin',  apiCors, adminRouter);
+app.use('/api/storage',apiCors, storageRouter);
 app.get('/api/health', apiCors, (_, res) => res.json({ ok: true, ts: Date.now() }));
 
 // Serve React build in production

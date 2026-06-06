@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ChevronLeft, Shield, FileText, CheckCircle2, Clock, AlertTriangle, Edit2, Check, X } from "lucide-react";
+import { ChevronLeft, Shield, FileText, CheckCircle2, Clock, AlertTriangle, Edit2, Check, X, HardDrive } from "lucide-react";
 import { adminApi, type AdminUserDetail } from "../../services/api";
 import { useAdminAuth } from "../../context/AdminAuthContext";
 import { SiInstagram, SiFacebook, SiTiktok, SiYoutube, SiWhatsapp, SiX, SiPinterest, SiThreads, SiReddit, SiTelegram, SiDiscord, SiBluesky, SiGoogle } from "@icons-pack/react-simple-icons";
@@ -180,6 +180,18 @@ export default function AdminUserDetailPage() {
         </div>
       </div>
 
+      {/* Storage */}
+      {(user as any).storageUsed !== undefined && (
+        <StorageCard
+          used={(user as any).storageUsed}
+          total={(user as any).storageTotal}
+          paidGb={user.paid_account_slots /* reuse field */ ?? 0}
+          dark={dark} card={card} head={head} muted={muted}
+          userId={user.id}
+          onUpdate={(gb) => setData((d) => d ? { ...d, user: { ...d.user, paid_account_slots: gb } as any } : d)}
+        />
+      )}
+
       {/* Post stats */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         {[
@@ -268,6 +280,81 @@ export default function AdminUserDetailPage() {
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function fmtBytes(b: number) {
+  if (b >= 1024 ** 3) return `${(b / 1024 ** 3).toFixed(2)} GB`;
+  if (b >= 1024 ** 2) return `${(b / 1024 ** 2).toFixed(0)} MB`;
+  return `${(b / 1024).toFixed(0)} KB`;
+}
+
+function StorageCard({
+  used, total, dark, card, head, muted, userId, onUpdate,
+}: {
+  used: number; total: number; paidGb: number;
+  dark: boolean; card: string; head: string; muted: string;
+  userId: string; onUpdate: (gb: number) => void;
+}) {
+  const [adding, setAdding] = useState(false);
+  const [extraGb, setExtraGb] = useState("");
+  const [saving, setSaving] = useState(false);
+  const pct = Math.min((used / total) * 100, 100);
+  const danger  = pct >= 95;
+  const warning = pct >= 80;
+  const barColor = danger ? "bg-red-500" : warning ? "bg-amber-400" : "bg-[#AAFF00]";
+
+  async function grantStorage() {
+    const gb = parseInt(extraGb);
+    if (!gb || gb < 1) return;
+    setSaving(true);
+    await adminApi.updateUser(userId, { paid_storage_gb: gb } as any);
+    onUpdate(gb);
+    setSaving(false);
+    setAdding(false);
+    setExtraGb("");
+  }
+
+  return (
+    <div className={`border rounded-2xl p-5 mb-6 ${card}`}>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <HardDrive className={`size-4 ${danger ? "text-red-400" : muted}`} />
+          <span className={`text-sm font-semibold ${head}`}>Storage</span>
+        </div>
+        {!adding && (
+          <button onClick={() => setAdding(true)}
+            className="text-xs px-3 py-1 rounded-lg bg-[#AAFF00]/10 text-[#AAFF00] border border-[#AAFF00]/20 hover:bg-[#AAFF00]/20 transition-colors">
+            Grant storage
+          </button>
+        )}
+        {adding && (
+          <div className="flex items-center gap-2">
+            <input
+              type="number" min={1} placeholder="GB"
+              value={extraGb} onChange={(e) => setExtraGb(e.target.value)}
+              className={`w-20 text-xs border rounded-lg px-2 py-1.5 outline-none ${dark ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-200 text-slate-900"}`}
+            />
+            <button onClick={grantStorage} disabled={saving}
+              className="size-7 flex items-center justify-center bg-[#AAFF00] text-black rounded-lg disabled:opacity-50">
+              <Check className="size-3.5" />
+            </button>
+            <button onClick={() => { setAdding(false); setExtraGb(""); }}
+              className={`size-7 flex items-center justify-center rounded-lg ${dark ? "bg-slate-800 text-slate-400" : "bg-slate-100 text-slate-500"}`}>
+              <X className="size-3.5" />
+            </button>
+          </div>
+        )}
+      </div>
+      <div className="flex items-center justify-between text-xs mb-2">
+        <span className={muted}>{fmtBytes(used)} used</span>
+        <span className={muted}>{fmtBytes(total)} total</span>
+      </div>
+      <div className={`h-2 rounded-full overflow-hidden ${dark ? "bg-slate-800" : "bg-slate-100"}`}>
+        <div className={`h-full rounded-full transition-all ${barColor}`} style={{ width: `${pct}%` }} />
+      </div>
+      <p className={`text-xs mt-2 ${muted}`}>{pct.toFixed(1)}% used · {fmtBytes(total - used)} remaining</p>
     </div>
   );
 }

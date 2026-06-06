@@ -158,7 +158,7 @@ router.get('/users/:id', requireAdmin, async (req, res) => {
   try {
     const user = await db('users')
       .where({ id: req.params.id })
-      .first('id', 'name', 'email', 'zernio_profile_id', 'created_at', 'plan', 'paid_account_slots', 'is_admin');
+      .first('id', 'name', 'email', 'zernio_profile_id', 'created_at', 'plan', 'paid_account_slots', 'is_admin', 'storage_used_bytes', 'paid_storage_gb');
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const [accounts, posts] = await Promise.all([
@@ -169,7 +169,14 @@ router.get('/users/:id', requireAdmin, async (req, res) => {
     const postStats = { total: posts.length, published: 0, scheduled: 0, failed: 0, draft: 0 };
     for (const p of posts) if (p.status in postStats) postStats[p.status]++;
 
-    res.json({ user, accounts, postStats, recentPosts: posts.slice(0, 15) });
+    const FREE_BYTES = 4 * 1024 * 1024 * 1024;
+    const storageTotal = FREE_BYTES + (user.paid_storage_gb || 0) * 1024 * 1024 * 1024;
+    const storageUsed  = Number(user.storage_used_bytes) || 0;
+
+    res.json({
+      user: { ...user, storageUsed, storageTotal },
+      accounts, postStats, recentPosts: posts.slice(0, 15),
+    });
   } catch (err) {
     console.error('[admin/users/:id]', err);
     res.status(500).json({ error: 'Server error' });
@@ -179,7 +186,7 @@ router.get('/users/:id', requireAdmin, async (req, res) => {
 // PATCH /api/admin/users/:id
 router.patch('/users/:id', requireAdmin, async (req, res) => {
   try {
-    const allowed = ['plan', 'paid_account_slots', 'is_admin'];
+    const allowed = ['plan', 'paid_account_slots', 'is_admin', 'paid_storage_gb'];
     const updates = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)));
     if (!Object.keys(updates).length) return res.status(400).json({ error: 'No valid fields' });
 

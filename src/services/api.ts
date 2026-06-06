@@ -55,9 +55,12 @@ export interface AdminUser {
   created_at: string;
   plan: string;
   paid_account_slots: number;
+  paid_storage_gb?: number;
   is_admin: number;
   accountCount: number;
   platforms: string[];
+  storageUsed?: number;
+  storageTotal?: number;
 }
 
 export interface AdminUserDetail {
@@ -104,7 +107,7 @@ export const adminApi = {
     return adminRequest<{ users: AdminUser[]; total: number; page: number; pages: number }>('GET', `/admin/users${q}`);
   },
   userDetail: (id: string) => adminRequest<AdminUserDetail>('GET', `/admin/users/${id}`),
-  updateUser: (id: string, data: Partial<Pick<AdminUser, 'plan' | 'paid_account_slots' | 'is_admin'>>) =>
+  updateUser: (id: string, data: Partial<Pick<AdminUser, 'plan' | 'paid_account_slots' | 'is_admin' | 'paid_storage_gb'>>) =>
     adminRequest<{ ok: boolean }>('PATCH', `/admin/users/${id}`, data),
 };
 
@@ -188,9 +191,9 @@ export const zernioApi = {
       ),
   },
   media: {
-    presign: (filename: string, contentType: string) =>
+    presign: (filename: string, contentType: string, size: number) =>
       request<{ uploadUrl: string; publicUrl: string; key: string; type: string }>(
-        'POST', '/zernio/media/presign', { filename, contentType }
+        'POST', '/zernio/media/presign', { filename, contentType, size }
       ),
   },
   posts: {
@@ -207,6 +210,19 @@ export const zernioApi = {
   analytics: {
     get: () => request<any>('GET', '/zernio/analytics'),
   },
+};
+
+// ─── Storage API ─────────────────────────────────────────────────────────────
+
+export interface StorageInfo {
+  used: number;
+  total: number;
+  paidGb: number;
+  freeGb: number;
+}
+
+export const storageApi = {
+  get: () => request<StorageInfo>('GET', '/storage'),
 };
 
 // ─── AI API ───────────────────────────────────────────────────────────────────

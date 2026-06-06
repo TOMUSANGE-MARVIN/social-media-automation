@@ -1,13 +1,13 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     Send, Save, Clock, Hash, ImagePlus, X, Loader2, CheckCircle2,
-    Sparkles, ChevronDown, Wand2, Image as ImageIcon,
+    Sparkles, ChevronDown, Wand2, Image as ImageIcon, HardDrive,
 } from "lucide-react";
 import { SiTiktok, SiInstagram, SiFacebook, SiYoutube, SiWhatsapp, SiX, SiPinterest, SiThreads, SiReddit, SiTelegram, SiDiscord, SiBluesky, SiGoogle } from "@icons-pack/react-simple-icons";
 import LinkedinIcon from "../components/icons/LinkedinIcon";
 import { useApp } from "../context/AppContext";
-import { zernioApi, aiApi, type CreatePostBody } from "../services/api";
+import { zernioApi, aiApi, storageApi, type CreatePostBody, type StorageInfo } from "../services/api";
 
 const PLATFORM_META: Record<string, { name: string; Icon: React.FC<{ size?: number; color?: string }>; bg: string }> = {
     instagram:      { name: "Instagram",       Icon: SiInstagram, bg: "bg-gradient-to-br from-pink-500 to-purple-600" },
@@ -62,6 +62,11 @@ export default function Compose() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const [storage, setStorage] = useState<StorageInfo | null>(null);
+
+    useEffect(() => {
+        storageApi.get().then(setStorage).catch(() => {});
+    }, []);
 
     // ── AI panel state ─────────────────────────────────────────────────────────
     const [showAI, setShowAI] = useState(false);
@@ -135,7 +140,7 @@ export default function Compose() {
         else setMediaPreview("");
 
         try {
-            const { uploadUrl, publicUrl } = await zernioApi.media.presign(file.name, file.type);
+            const { uploadUrl, publicUrl } = await zernioApi.media.presign(file.name, file.type, file.size);
             const uploadRes = await fetch(uploadUrl, {
                 method: "PUT",
                 headers: { "Content-Type": file.type },
@@ -144,9 +149,12 @@ export default function Compose() {
             if (!uploadRes.ok) throw new Error(`Upload failed (${uploadRes.status})`);
             setMediaPublicUrl(publicUrl);
             setUploadState("done");
+            // Refresh storage usage after successful upload
+            storageApi.get().then(setStorage).catch(() => {});
         } catch (err) {
             setUploadState("error");
-            setUploadError(err instanceof Error ? err.message : "Upload failed");
+            const msg = err instanceof Error ? err.message : "Upload failed";
+            setUploadError(msg.includes("Storage limit") ? "Storage limit reached — upgrade for more space." : msg);
         }
     }
 
@@ -365,9 +373,12 @@ export default function Compose() {
 
                 {/* Media Upload */}
                 <div className="bg-white rounded-xl shadow-sm p-5">
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
-                        <ImagePlus className="size-4 text-gray-400" /> Media <span className="text-gray-400 font-normal">(optional)</span>
-                    </label>
+                    <div className="flex items-center justify-between mb-3">
+                        <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                            <ImagePlus className="size-4 text-gray-400" /> Media <span className="text-gray-400 font-normal">(optional)</span>
+                        </label>
+                        {storage && <StorageBar storage={storage} />}
+                    </div>
 
                     {uploadState === "idle" ? (
                         <button type="button" onClick={() => fileInputRef.current?.click()}
@@ -490,6 +501,36 @@ export default function Compose() {
                         : <><Send className="size-4" /> {loading ? "Publishing…" : "Publish Now"}</>}
                 </button>
             </form>
+        </div>
+    );
+}
+
+function fmtBytes(bytes: number): string {
+    if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(1)} GB`;
+    if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(0)} MB`;
+    return `${(bytes / 1024).toFixed(0)} KB`;
+}
+
+function StorageBar({ storage }: { storage: StorageInfo }) {
+    const pct     = Math.min((storage.used / storage.total) * 100, 100);
+    const warning = pct >= 80;
+    const danger  = pct >= 95;
+
+    return (
+        <div className="flex items-center gap-2">
+            <HardDrive className={`size-3.5 shrink-0 ${danger ? "text-red-500" : warning ? "text-amber-500" : "text-gray-400"}`} />
+            <div className="flex flex-col gap-0.5 min-w-[120px]">
+                <div className="flex justify-between text-[10px] text-gray-400">
+                    <span>{fmtBytes(storage.used)}</span>
+                    <span>{fmtBytes(storage.total)}</span>
+                </div>
+                <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden w-28">
+                    <div
+                        className={`h-full rounded-full transition-all ${danger ? "bg-red-500" : warning ? "bg-amber-400" : "bg-[#AAFF00]"}`}
+                        style={{ width: `${pct}%` }}
+                    />
+                </div>
+            </div>
         </div>
     );
 }
