@@ -3,12 +3,13 @@ import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import type { ZernioPost } from "../services/api";
 import {
     Send, Save, Clock, Hash, ImagePlus, X, Loader2, CheckCircle2,
-    Sparkles, ChevronDown, Wand2, Image as ImageIcon, HardDrive, Trash2,
+    Sparkles, ChevronDown, Wand2, Image as ImageIcon, HardDrive, Trash2, Eye,
 } from "lucide-react";
 import { SiTiktok, SiInstagram, SiFacebook, SiYoutube, SiWhatsapp, SiX, SiPinterest, SiThreads, SiReddit, SiTelegram, SiDiscord, SiBluesky, SiGoogle } from "@icons-pack/react-simple-icons";
 import LinkedinIcon from "../components/icons/LinkedinIcon";
 import { useApp } from "../context/AppContext";
 import { zernioApi, aiApi, storageApi, scheduleDeleteApi, type CreatePostBody, type StorageInfo } from "../services/api";
+import PostPreviewPanel from "../components/PostPreview";
 
 const PLATFORM_META: Record<string, { name: string; Icon: React.FC<{ size?: number; color?: string }>; bg: string }> = {
     instagram:      { name: "Instagram",       Icon: SiInstagram, bg: "bg-gradient-to-br from-pink-500 to-purple-600" },
@@ -70,6 +71,7 @@ export default function Compose() {
     const [storage, setStorage] = useState<StorageInfo | null>(null);
     const [autoDeleteAt, setAutoDeleteAt] = useState("");
     const [autoDeleteEnabled, setAutoDeleteEnabled] = useState(false);
+    const [showPreview, setShowPreview] = useState(false);
 
     useEffect(() => {
         storageApi.get().then(setStorage).catch(() => {});
@@ -211,8 +213,6 @@ export default function Compose() {
             return;
         }
 
-        const hashtags = hashtagInput.split(/[\s,]+/).map((t) => t.replace(/^#/, "")).filter(Boolean);
-
         const body: CreatePostBody = {
             content: content.trim(),
             platforms,
@@ -240,25 +240,47 @@ export default function Compose() {
         }
     }
 
+    const hashtags = hashtagInput.split(/[\s,]+/).map((t) => t.replace(/^#/, "")).filter(Boolean);
+
     return (
         <div className="w-full max-w-3xl mx-auto">
-            <div className="mb-8 flex items-start justify-between gap-4">
+            {showPreview && (
+                <PostPreviewPanel
+                    content={content}
+                    hashtags={hashtags}
+                    mediaUrl={mediaPreview}
+                    accounts={knownAccounts}
+                    selectedIds={selectedIds}
+                    onClose={() => setShowPreview(false)}
+                />
+            )}
+
+            <div className="mb-8 flex items-start justify-between gap-3">
                 <div>
                     <h1 className="text-2xl font-semibold text-gray-900">{isEditing ? "Edit Post" : "Compose Post"}</h1>
                     <p className="text-sm text-gray-500 mt-0.5">{isEditing ? "Update your draft or scheduled post" : "Create and schedule content across your platforms"}</p>
                 </div>
-                <button
-                    type="button"
-                    onClick={() => { setShowAI((v) => !v); setAiError(""); }}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all shrink-0 ${
-                        showAI
-                            ? "bg-violet-600 text-white border-violet-600 shadow-md"
-                            : "bg-white text-violet-600 border-violet-200 hover:border-violet-400 hover:bg-violet-50"
-                    }`}>
-                    <Sparkles className="size-4" />
-                    AI Assistant
-                    <ChevronDown className={`size-3.5 transition-transform ${showAI ? "rotate-180" : ""}`} />
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                    <button
+                        type="button"
+                        onClick={() => setShowPreview(true)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border border-gray-200 text-gray-600 hover:border-gray-400 hover:bg-gray-50 transition-all">
+                        <Eye className="size-4" />
+                        Preview
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => { setShowAI((v) => !v); setAiError(""); }}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                            showAI
+                                ? "bg-violet-600 text-white border-violet-600 shadow-md"
+                                : "bg-white text-violet-600 border-violet-200 hover:border-violet-400 hover:bg-violet-50"
+                        }`}>
+                        <Sparkles className="size-4" />
+                        AI Assistant
+                        <ChevronDown className={`size-3.5 transition-transform ${showAI ? "rotate-180" : ""}`} />
+                    </button>
+                </div>
             </div>
 
             {/* ── AI Panel ───────────────────────────────────────────────────── */}
