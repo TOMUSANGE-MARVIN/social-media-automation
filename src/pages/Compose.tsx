@@ -1,9 +1,9 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation, useBlocker } from "react-router-dom";
 import type { ZernioPost } from "../services/api";
 import {
     Send, Save, Clock, Hash, ImagePlus, X, Loader2, CheckCircle2,
-    Sparkles, ChevronDown, Wand2, Image as ImageIcon, HardDrive, Trash2, Eye,
+    Sparkles, ChevronDown, Wand2, Image as ImageIcon, HardDrive, Trash2, Eye, RotateCcw,
 } from "lucide-react";
 import { SiTiktok, SiInstagram, SiFacebook, SiYoutube, SiWhatsapp, SiX, SiPinterest, SiThreads, SiReddit, SiTelegram, SiDiscord, SiBluesky, SiGoogle } from "@icons-pack/react-simple-icons";
 import LinkedinIcon from "../components/icons/LinkedinIcon";
@@ -45,6 +45,27 @@ type PublishMode = "now" | "scheduled" | "draft";
 type UploadState = "idle" | "uploading" | "done" | "error";
 type AITab = "content" | "image";
 
+const DRAFT_KEY = "postify_compose_draft";
+
+interface SavedDraft {
+    content: string;
+    hashtagInput: string;
+    selectedIds: string[];
+    mediaPublicUrl: string;
+    mediaPreview: string;
+    mode: PublishMode;
+    scheduledFor: string;
+    savedAt: string;
+}
+
+function timeAgo(iso: string) {
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1)  return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    return `${Math.floor(mins / 60)}h ago`;
+}
+
 export default function Compose() {
     const { accounts } = useApp();
     const navigate = useNavigate();
@@ -72,10 +93,72 @@ export default function Compose() {
     const [autoDeleteAt, setAutoDeleteAt] = useState("");
     const [autoDeleteEnabled, setAutoDeleteEnabled] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
+    const [savedDraft, setSavedDraft] = useState<SavedDraft | null>(null);
+    const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
     useEffect(() => {
         storageApi.get().then(setStorage).catch(() => {});
     }, []);
+
+    // ── On mount: check for a locally-saved draft (skip when editing an existing post) ──
+    useEffect(() => {
+        if (isEditing) return;
+        try {
+            const raw = localStorage.getItem(DRAFT_KEY);
+            if (!raw) return;
+            const draft: SavedDraft = JSON.parse(raw);
+            if (draft.content?.trim()) setSavedDraft(draft);
+        } catch { /* ignore corrupt data */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // ── Debounced auto-save to localStorage (1.5 s after last change) ──
+    useEffect(() => {
+        if (isEditing) return;
+        if (!content.trim() && !mediaPublicUrl) return;
+        const t = setTimeout(() => {
+            const draft: SavedDraft = {
+                content, hashtagInput,
+                selectedIds: [...selectedIds],
+                mediaPublicUrl, mediaPreview,
+                mode, scheduledFor,
+                savedAt: new Date().toISOString(),
+            };
+            localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+            setLastSaved(new Date());
+        }, 1500);
+        return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [content, hashtagInput, selectedIds, mediaPublicUrl, mode, scheduledFor]);
+
+    // ── Warn on browser tab/window close ──
+    useEffect(() => {
+        function onBeforeUnload(e: BeforeUnloadEvent) {
+            if (content.trim()) { e.preventDefault(); e.returnValue = ""; }
+        }
+        window.addEventListener("beforeunload", onBeforeUnload);
+        return () => window.removeEventListener("beforeunload", onBeforeUnload);
+    }, [content]);
+
+    function clearDraft() {
+        localStorage.removeItem(DRAFT_KEY);
+        setSavedDraft(null);
+        setLastSaved(null);
+    }
+
+    function restoreDraft(draft: SavedDraft) {
+        setContent(draft.content);
+        setHashtagInput(draft.hashtagInput ?? "");
+        setSelectedIds(new Set(draft.selectedIds ?? []));
+        if (draft.mediaPublicUrl) {
+            setMediaPublicUrl(draft.mediaPublicUrl);
+            setMediaPreview(draft.mediaPreview ?? draft.mediaPublicUrl);
+            setUploadState("done");
+        }
+        setMode(draft.mode ?? "now");
+        if (draft.scheduledFor) setScheduledFor(draft.scheduledFor);
+        setSavedDraft(null);
+    }
 
     // Pre-populate form when editing
     useEffect(() => {
@@ -108,6 +191,14 @@ export default function Compose() {
     const [aiImageStyle, setAiImageStyle] = useState<"vivid" | "natural">("vivid");
     const [aiLoading, setAiLoading] = useState(false);
     const [aiError, setAiError] = useState("");
+
+    // ── Block React Router navigation when there's unsaved content ──
+    const blocker = useBlocker(
+        ({ currentLocation, nextLocation }) =>
+            !!content.trim() &&
+            !success &&
+            currentLocation.pathname !== nextLocation.pathname
+    );
 
     const knownAccounts = useMemo(
         () => accounts.filter((a) => a.platform in PLATFORM_META),
@@ -231,6 +322,7 @@ export default function Compose() {
             if (autoDeleteEnabled && autoDeleteAt && created?._id) {
                 await scheduleDeleteApi.set(created._id, new Date(autoDeleteAt).toISOString()).catch(() => {});
             }
+            clearDraft();
             setSuccess(mode === "now" ? "Post published!" : mode === "draft" ? "Draft saved!" : "Post scheduled!");
             setTimeout(() => navigate("/posts"), 1500);
         } catch (err) {
@@ -244,6 +336,59 @@ export default function Compose() {
 
     return (
         <div className="w-full max-w-3xl mx-auto">
+            {/* Navigation blocker modal */}
+            {blocker.state === "blocked" && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+                    <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4">
+                        <div className="flex items-start gap-3">
+                            <div className="size-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                                <Save className="size-5 text-amber-500" />
+                            </div>
+                            <div>
+                                <h2 className="font-semibold text-gray-900">Leave without saving?</h2>
+                                <p className="text-sm text-gray-500 mt-1">Your draft has been auto-saved locally. You can restore it next time you open Compose.</p>
+                            </div>
+                        </div>
+                        <div className="flex gap-3">
+                            <button onClick={() => blocker.reset?.()}
+                                className="flex-1 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">
+                                Keep editing
+                            </button>
+                            <button onClick={() => blocker.proceed?.()}
+                                className="flex-1 py-2.5 text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 rounded-xl transition-colors">
+                                Leave anyway
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Saved draft restore banner */}
+            {savedDraft && (
+                <div className="mb-4 flex items-center justify-between gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                        <RotateCcw className="size-4 text-amber-500 shrink-0" />
+                        <div className="min-w-0">
+                            <p className="text-sm font-medium text-amber-800 truncate">
+                                Unsaved draft from {timeAgo(savedDraft.savedAt)}
+                            </p>
+                            <p className="text-xs text-amber-600 truncate">{savedDraft.content.slice(0, 60)}{savedDraft.content.length > 60 ? "…" : ""}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                        <button onClick={() => clearDraft()}
+                            className="text-xs text-amber-600 hover:text-amber-800 transition-colors px-2 py-1">
+                            Discard
+                        </button>
+                        <button onClick={() => restoreDraft(savedDraft)}
+                            className="text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg transition-colors">
+                            Restore
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {showPreview && (
                 <PostPreviewPanel
                     content={content}
@@ -418,9 +563,16 @@ export default function Compose() {
                                 className="text-xs text-gray-600 bg-transparent outline-none w-full placeholder-slate-400"
                             />
                         </div>
-                        <span className={`text-xs shrink-0 ${content.length > 2200 ? "text-red-500" : "text-gray-400"}`}>
-                            {content.length} chars
-                        </span>
+                        <div className="flex items-center gap-2 shrink-0">
+                            {lastSaved && !isEditing && (
+                                <span className="text-[10px] text-gray-400 flex items-center gap-1">
+                                    <Save className="size-2.5" /> saved {timeAgo(lastSaved.toISOString())}
+                                </span>
+                            )}
+                            <span className={`text-xs ${content.length > 2200 ? "text-red-500" : "text-gray-400"}`}>
+                                {content.length} chars
+                            </span>
+                        </div>
                     </div>
                 </div>
 
