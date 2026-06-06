@@ -7,6 +7,8 @@ import Compose from "./pages/Compose";
 import Posts from "./pages/Posts";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
+import BulkUpload from "./pages/BulkUpload";
+import CalendarPage from "./pages/CalendarPage";
 import DashboardLayout from "./components/Dashboard/DashboardLayout";
 import PublicLayout from "./components/Home/PublicLayout";
 import FeaturesPage from "./pages/Features";
@@ -70,12 +72,14 @@ export default function App() {
                 {/* Protected dashboard */}
                 <Route element={<AuthGuard />}>
                     <Route element={<DashboardLayout />}>
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/compose"   element={<Compose />} />
-                        <Route path="/posts"     element={<Posts />} />
-                        <Route path="/analytics" element={<Analytics />} />
-                        <Route path="/accounts"  element={<Accounts />} />
-                        <Route path="/settings"  element={<Settings />} />
+                        <Route path="/dashboard"    element={<Dashboard />} />
+                        <Route path="/compose"      element={<Compose />} />
+                        <Route path="/posts"        element={<Posts />} />
+                        <Route path="/calendar"     element={<CalendarPage />} />
+                        <Route path="/bulk-upload"  element={<BulkUpload />} />
+                        <Route path="/analytics"    element={<Analytics />} />
+                        <Route path="/accounts"     element={<Accounts />} />
+                        <Route path="/settings"     element={<Settings />} />
                     </Route>
                 </Route>
 

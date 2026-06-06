@@ -2,18 +2,20 @@ import { NavLink, Link } from 'react-router-dom';
 import { useState } from 'react';
 import {
   LayoutDashboard, PenSquare, CalendarDays, Link2, Settings,
-  LogOut, Menu, X, BarChart2, Sun, Moon, Shield,
+  LogOut, Menu, X, BarChart2, Sun, Moon, Shield, Upload, CalendarRange,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 
 const NAV = [
-  { to: '/dashboard', label: 'Dashboard',  Icon: LayoutDashboard },
-  { to: '/compose',   label: 'Compose',    Icon: PenSquare },
-  { to: '/posts',     label: 'Posts',      Icon: CalendarDays },
-  { to: '/analytics', label: 'Analytics',  Icon: BarChart2 },
-  { to: '/accounts',  label: 'Accounts',   Icon: Link2 },
-  { to: '/settings',  label: 'Settings',   Icon: Settings },
+  { to: '/dashboard',   label: 'Dashboard',   Icon: LayoutDashboard },
+  { to: '/compose',     label: 'Compose',     Icon: PenSquare },
+  { to: '/posts',       label: 'Posts',       Icon: CalendarDays },
+  { to: '/calendar',    label: 'Calendar',    Icon: CalendarRange },
+  { to: '/bulk-upload', label: 'Bulk Upload', Icon: Upload },
+  { to: '/analytics',   label: 'Analytics',   Icon: BarChart2 },
+  { to: '/accounts',    label: 'Accounts',    Icon: Link2 },
+  { to: '/settings',    label: 'Settings',    Icon: Settings },
 ];
 
 function NavItems({ onNav }: { onNav?: () => void }) {

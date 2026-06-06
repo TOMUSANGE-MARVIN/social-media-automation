@@ -3,12 +3,12 @@ import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import type { ZernioPost } from "../services/api";
 import {
     Send, Save, Clock, Hash, ImagePlus, X, Loader2, CheckCircle2,
-    Sparkles, ChevronDown, Wand2, Image as ImageIcon, HardDrive,
+    Sparkles, ChevronDown, Wand2, Image as ImageIcon, HardDrive, Trash2,
 } from "lucide-react";
 import { SiTiktok, SiInstagram, SiFacebook, SiYoutube, SiWhatsapp, SiX, SiPinterest, SiThreads, SiReddit, SiTelegram, SiDiscord, SiBluesky, SiGoogle } from "@icons-pack/react-simple-icons";
 import LinkedinIcon from "../components/icons/LinkedinIcon";
 import { useApp } from "../context/AppContext";
-import { zernioApi, aiApi, storageApi, type CreatePostBody, type StorageInfo } from "../services/api";
+import { zernioApi, aiApi, storageApi, scheduleDeleteApi, type CreatePostBody, type StorageInfo } from "../services/api";
 
 const PLATFORM_META: Record<string, { name: string; Icon: React.FC<{ size?: number; color?: string }>; bg: string }> = {
     instagram:      { name: "Instagram",       Icon: SiInstagram, bg: "bg-gradient-to-br from-pink-500 to-purple-600" },
@@ -68,6 +68,8 @@ export default function Compose() {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const [storage, setStorage] = useState<StorageInfo | null>(null);
+    const [autoDeleteAt, setAutoDeleteAt] = useState("");
+    const [autoDeleteEnabled, setAutoDeleteEnabled] = useState(false);
 
     useEffect(() => {
         storageApi.get().then(setStorage).catch(() => {});
@@ -225,7 +227,10 @@ export default function Compose() {
         setLoading(true);
         try {
             if (isEditing) await zernioApi.posts.delete(editPost!._id);
-            await zernioApi.posts.create(body);
+            const { post: created } = await zernioApi.posts.create(body);
+            if (autoDeleteEnabled && autoDeleteAt && created?._id) {
+                await scheduleDeleteApi.set(created._id, new Date(autoDeleteAt).toISOString()).catch(() => {});
+            }
             setSuccess(mode === "now" ? "Post published!" : mode === "draft" ? "Draft saved!" : "Post scheduled!");
             setTimeout(() => navigate("/posts"), 1500);
         } catch (err) {
@@ -508,6 +513,34 @@ export default function Compose() {
                                 className="flex-1 text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-red-300"
                             />
                         </div>
+                    )}
+                </div>
+
+                {/* Auto-delete */}
+                <div className="bg-white rounded-xl shadow-sm p-5">
+                    <label className="flex items-center justify-between cursor-pointer select-none">
+                        <div className="flex items-center gap-2">
+                            <Trash2 className="size-4 text-gray-400" />
+                            <span className="text-sm font-medium text-gray-700">Auto-delete</span>
+                            <span className="text-xs text-gray-400">(optional)</span>
+                        </div>
+                        <div onClick={() => setAutoDeleteEnabled(v => !v)}
+                            className={`relative flex items-center w-10 h-5 rounded-full transition-colors cursor-pointer ${autoDeleteEnabled ? "bg-red-500" : "bg-gray-200"}`}>
+                            <span className={`absolute size-4 rounded-full bg-white shadow transition-all ${autoDeleteEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
+                        </div>
+                    </label>
+                    {autoDeleteEnabled && (
+                        <div className="flex items-center gap-2 mt-3">
+                            <Clock className="size-4 text-gray-400 shrink-0" />
+                            <input type="datetime-local" value={autoDeleteAt}
+                                onChange={(e) => setAutoDeleteAt(e.target.value)}
+                                min={new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16)}
+                                className="flex-1 text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 outline-none focus:border-red-300"
+                            />
+                        </div>
+                    )}
+                    {autoDeleteEnabled && (
+                        <p className="mt-2 text-xs text-gray-400">The post will be automatically deleted at the selected time.</p>
                     )}
                 </div>
 

@@ -225,6 +225,15 @@ export const storageApi = {
   get: () => request<StorageInfo>('GET', '/storage'),
 };
 
+// ─── Scheduled Delete API ─────────────────────────────────────────────────────
+
+export const scheduleDeleteApi = {
+  set:    (postId: string, deleteAt: string) =>
+    request<{ ok: boolean }>('POST', '/schedule-delete', { postId, deleteAt }),
+  cancel: (postId: string) =>
+    request<{ ok: boolean }>('DELETE', `/schedule-delete/${postId}`),
+};
+
 // ─── AI API ───────────────────────────────────────────────────────────────────
 
 export const aiApi = {
