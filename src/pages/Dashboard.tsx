@@ -2,14 +2,14 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
     PenSquare, Calendar, CheckCircle2, AlertCircle, Link2,
-    FileText, Sparkles, ArrowRight, TrendingUp, BarChart2, ArrowUpRight,
+    FileText, Sparkles, ArrowRight, TrendingUp, BarChart2, ArrowUpRight, HardDrive,
 } from "lucide-react";
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import { useAuth } from "../context/AuthContext";
 import { useApp } from "../context/AppContext";
-import { zernioApi, type ZernioPost } from "../services/api";
+import { zernioApi, storageApi, type ZernioPost, type StorageInfo } from "../services/api";
 import { SiTiktok, SiInstagram, SiFacebook, SiYoutube, SiWhatsapp, SiX, SiPinterest, SiThreads, SiReddit, SiTelegram, SiDiscord, SiBluesky, SiGoogle } from "@icons-pack/react-simple-icons";
 import LinkedinIcon from "../components/icons/LinkedinIcon";
 
@@ -141,6 +141,40 @@ function CustomTooltip({ active, payload, label }: any) {
     );
 }
 
+function fmtBytes(bytes: number): string {
+    if (bytes >= 1024 ** 3) return (bytes / 1024 ** 3).toFixed(1) + " GB";
+    if (bytes >= 1024 ** 2) return (bytes / 1024 ** 2).toFixed(1) + " MB";
+    if (bytes >= 1024)      return (bytes / 1024).toFixed(1) + " KB";
+    return bytes + " B";
+}
+
+function StorageWidget({ storage }: { storage: StorageInfo }) {
+    const pct = Math.min(100, Math.round((storage.used / storage.total) * 100));
+    const barColor = pct >= 95 ? "bg-red-500" : pct >= 80 ? "bg-amber-400" : "bg-[#AAFF00]";
+    return (
+        <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <div className="flex items-center gap-2 mb-3">
+                <div className="size-8 rounded-lg bg-gray-100 flex items-center justify-center">
+                    <HardDrive className="size-4 text-gray-500" />
+                </div>
+                <div>
+                    <h3 className="text-sm font-semibold text-gray-900 leading-tight">Storage</h3>
+                    <p className="text-xs text-gray-400">{fmtBytes(storage.used)} of {fmtBytes(storage.total)} used</p>
+                </div>
+                <span className="ml-auto text-xs font-semibold text-gray-500">{pct}%</span>
+            </div>
+            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className={`h-full rounded-full transition-all duration-700 ${barColor}`} style={{ width: `${pct}%` }} />
+            </div>
+            {pct >= 80 && (
+                <p className={`mt-2 text-xs ${pct >= 95 ? "text-red-500" : "text-amber-500"}`}>
+                    {pct >= 95 ? "Storage almost full — delete old media or upgrade." : "Storage running low."}
+                </p>
+            )}
+        </div>
+    );
+}
+
 export default function Dashboard() {
     const { user } = useAuth();
     const { accounts } = useApp();
@@ -148,6 +182,11 @@ export default function Dashboard() {
     const [allPosts, setAllPosts] = useState<ZernioPost[]>([]);
     const [stats, setStats] = useState({ scheduled: 0, published: 0, draft: 0, failed: 0 });
     const [loading, setLoading] = useState(true);
+    const [storage, setStorage] = useState<StorageInfo | null>(null);
+
+    useEffect(() => {
+        storageApi.get().then(setStorage).catch(() => {});
+    }, []);
 
     useEffect(() => {
         if (!user?.zernioProfileId) { setLoading(false); return; }
@@ -320,19 +359,25 @@ export default function Dashboard() {
                     </div>
                 </div>
 
-                {/* AI promo */}
-                <div className="ai-promo-card bg-gray-900 rounded-xl p-6 flex flex-col">
-                    <div className="size-10 bg-white/10 rounded-xl flex items-center justify-center mb-4">
-                        <Sparkles className="size-5 text-white" />
+                {/* Right column */}
+                <div className="flex flex-col gap-4">
+                    {/* AI promo */}
+                    <div className="ai-promo-card bg-gray-900 rounded-xl p-6 flex flex-col">
+                        <div className="size-10 bg-white/10 rounded-xl flex items-center justify-center mb-4">
+                            <Sparkles className="size-5 text-white" />
+                        </div>
+                        <h3 className="font-semibold text-white text-sm mb-2">AI Content Generator</h3>
+                        <p className="text-sm text-gray-400 flex-1 mb-6 leading-relaxed">
+                            Generate on-brand posts and images for all your platforms instantly with GPT-4o and DALL-E.
+                        </p>
+                        <Link to="/compose"
+                            className="flex items-center justify-center gap-2 bg-[#AAFF00] text-gray-900 text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-[#c8ff33] transition-colors">
+                            <PenSquare className="size-4" /> Start Writing
+                        </Link>
                     </div>
-                    <h3 className="font-semibold text-white text-sm mb-2">AI Content Generator</h3>
-                    <p className="text-sm text-gray-400 flex-1 mb-6 leading-relaxed">
-                        Generate on-brand posts and images for all your platforms instantly with GPT-4o and DALL-E.
-                    </p>
-                    <Link to="/compose"
-                        className="flex items-center justify-center gap-2 bg-[#AAFF00] text-gray-900 text-sm font-semibold px-4 py-2.5 rounded-lg hover:bg-[#c8ff33] transition-colors">
-                        <PenSquare className="size-4" /> Start Writing
-                    </Link>
+
+                    {/* Storage */}
+                    {storage && <StorageWidget storage={storage} />}
                 </div>
             </div>
         </div>
