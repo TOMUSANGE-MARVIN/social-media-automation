@@ -1,4 +1,5 @@
 # ── Stage 1: Build frontend ───────────────────────────────────────────
+# cache-bust: 2026-06-06
 FROM node:20-alpine AS builder
 
 WORKDIR /app
