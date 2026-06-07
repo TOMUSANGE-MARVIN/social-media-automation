@@ -34,8 +34,13 @@ router.post('/register', async (req, res) => {
     if (password.length < 6)
       return res.status(400).json({ error: 'Password must be at least 6 characters' });
 
-    const existing = await db('users').where({ email }).first('id');
-    if (existing) return res.status(409).json({ error: 'Email already registered' });
+    const existing = await db('users').where({ email }).first('id', 'google_id', 'password_hash');
+    if (existing) {
+      if (existing.google_id && !existing.password_hash) {
+        return res.status(409).json({ error: 'This email is linked to a Google account. Please continue with Google to sign in.' });
+      }
+      return res.status(409).json({ error: 'Email already registered. Please sign in instead.' });
+    }
 
     const id             = randomUUID();
     const passwordHash   = await bcrypt.hash(password, 10);
@@ -59,6 +64,10 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     const user = await db('users').where({ email }).first();
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+
+    if (!user.password_hash) {
+      return res.status(401).json({ error: 'This account uses Google sign-in. Please continue with Google to log in.' });
+    }
 
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
