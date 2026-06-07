@@ -58,8 +58,9 @@ export default function Accounts() {
             const redirectUrl = `${window.location.origin}/accounts`;
             const { authUrl } = await zernioApi.connect.start(platformId, redirectUrl);
             window.location.href = authUrl;
-        } catch {
-            showToast("error", `Failed to start ${platformId} connection. Please try again.`);
+        } catch (err) {
+            const message = err instanceof Error ? err.message : `Failed to start ${platformId} connection. Please try again.`;
+            showToast("error", message);
             setConnecting(null);
         }
     }
